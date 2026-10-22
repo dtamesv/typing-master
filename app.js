@@ -44,6 +44,8 @@ const btnBackPractice  = document.getElementById('btn-back-practice');
 const btnRetry         = document.getElementById('btn-retry');
 const btnBackResults   = document.getElementById('btn-back-results');
 const resultsStats     = document.getElementById('results-stats');
+const resultsHistory   = document.getElementById('results-history');
+const globalStats      = document.getElementById('global-stats');
 
 // ── Theme (light / dark) ─────────────────────────────────────
 const themeToggle = document.getElementById('theme-toggle');
@@ -64,6 +66,86 @@ themeToggle.addEventListener('click', function () {
 
 updateThemeToggleLabel();
 
+// ── Saved stats (localStorage) ───────────────────────────────
+// Shape: { global: Bucket, texts: { [textId]: Bucket } }
+// Bucket: { runs, bestWpm, totalWpm, bestAccuracy, totalAccuracy, totalTime }
+// Only completed sessions are recorded.
+
+const STATS_KEY = 'typingStats';
+
+function newBucket() {
+  return { runs: 0, bestWpm: 0, totalWpm: 0, bestAccuracy: 0, totalAccuracy: 0, totalTime: 0 };
+}
+
+function loadStats() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STATS_KEY));
+    if (s && s.global && s.texts) return s;
+  } catch (e) { /* missing or corrupt: start fresh */ }
+  return { global: newBucket(), texts: {} };
+}
+
+function saveStats(stats) {
+  try { localStorage.setItem(STATS_KEY, JSON.stringify(stats)); } catch (e) { /* storage unavailable */ }
+}
+
+function addToBucket(b, m) {
+  b.runs++;
+  b.bestWpm = Math.max(b.bestWpm, m.netWpm);
+  b.totalWpm += m.netWpm;
+  b.bestAccuracy = Math.max(b.bestAccuracy, m.accuracy);
+  b.totalAccuracy += m.accuracy;
+  b.totalTime += m.elapsed;
+}
+
+/** Add a finished session to the global and per-text stats; returns the updated stats. */
+function recordRun(textId, metrics) {
+  const stats = loadStats();
+  if (!stats.texts[textId]) stats.texts[textId] = newBucket();
+  addToBucket(stats.global, metrics);
+  addToBucket(stats.texts[textId], metrics);
+  saveStats(stats);
+  return stats;
+}
+
+/** Average of a bucket total, rounded; 0 when there are no runs. */
+function bucketAvg(b, field) {
+  return b.runs ? Math.round(b[field] / b.runs) : 0;
+}
+
+/** One table row for a stats bucket. Total time is only meaningful per text, so global rows skip it. */
+function statsRow(label, b, showTime) {
+  return '<tr><th scope="row">' + escHtml(label) + '</th>' +
+    '<td>' + b.runs + '</td>' +
+    '<td>' + b.bestWpm + '</td>' +
+    '<td>' + bucketAvg(b, 'totalWpm') + '</td>' +
+    '<td>' + b.bestAccuracy + '%</td>' +
+    '<td>' + bucketAvg(b, 'totalAccuracy') + '%</td>' +
+    '<td>' + (showTime ? formatTime(b.totalTime) : '-') + '</td></tr>';
+}
+
+/** Table comparing this text's history with the global history. */
+function renderHistory(stats, textId) {
+  resultsHistory.innerHTML =
+    '<h3>History</h3>' +
+    '<table class="stats-table"><thead><tr>' +
+      '<th></th><th>Runs</th><th>Best WPM</th><th>Avg WPM</th>' +
+      '<th>Best acc.</th><th>Avg acc.</th><th>Total time</th>' +
+    '</tr></thead><tbody>' +
+      statsRow('This text', stats.texts[textId] || newBucket(), true) +
+      statsRow('All texts', stats.global, false) +
+    '</tbody></table>';
+}
+
+/** One-line global summary shown on the selection screen. */
+function renderGlobalSummary() {
+  const g = loadStats().global;
+  globalStats.classList.toggle('hidden', g.runs === 0);
+  globalStats.textContent = 'All texts: ' + g.runs + (g.runs === 1 ? ' run' : ' runs') +
+    ' · best ' + g.bestWpm + ' WPM · avg ' + bucketAvg(g, 'totalWpm') + ' WPM · avg accuracy ' +
+    bucketAvg(g, 'totalAccuracy') + '%';
+}
+
 // ── View helpers ─────────────────────────────────────────────
 
 /**
@@ -71,7 +153,11 @@ updateThemeToggleLabel();
  * @param {'select' | 'practice'} name
  */
 function showView(name) {
-  if (name === 'select' && location.hash) location.hash = '';
+  if (name === 'select') {
+    if (location.hash) location.hash = '';
+    renderGlobalSummary();
+    renderTextList(); // refresh per-text stats on the cards
+  }
   selectView.classList.toggle('hidden', name !== 'select');
   practiceView.classList.toggle('hidden', name !== 'practice');
 }
@@ -152,10 +238,17 @@ function renderTextCard(entry) {
 
   const wordCount = entry.text.trim().split(/\s+/).length;
 
+  const saved = loadStats().texts[entry.id];
+  const cardStats = saved && saved.runs
+    ? '<span class="text-card-stats">Best ' + saved.bestWpm + ' WPM · avg accuracy ' +
+        bucketAvg(saved, 'totalAccuracy') + '% · ' + saved.runs + (saved.runs === 1 ? ' run' : ' runs') + '</span>'
+    : '';
+
   btn.innerHTML =
     '<span class="text-card-title">' + escHtml(entry.title) +
       ' <span class="badge badge-' + escHtml(entry.difficulty.toLowerCase()) + '">' + escHtml(entry.difficulty) + '</span></span>' +
     '<span class="text-card-meta">' + wordCount + ' words · ' + entry.text.length + ' characters</span>' +
+    cardStats +
     '<span class="text-card-preview">' + escHtml(preview) + '</span>';
 
   btn.addEventListener('click', function () {
@@ -475,6 +568,8 @@ function showResults(metrics) {
     + buildStatCard('Time',            formatTime(metrics.elapsed))
     + buildStatCard('Errors',          metrics.errors)
     + buildStatCard('Corrected errors', metrics.corrected);
+
+  renderHistory(recordRun(state.currentText.id, metrics), state.currentText.id);
 
   resultsPanel.classList.remove('hidden');
   practiceHint.classList.add('hidden');
