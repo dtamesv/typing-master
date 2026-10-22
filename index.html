@@ -52,6 +52,24 @@
         </select>
       </label>
     </div>
+    <div class="random-card">
+      <div class="text-card-title">Random text <span class="badge badge-charset">New every time</span></div>
+      <div class="random-options">
+        <label>Size
+          <select id="random-size">
+            <option value="short">Short (~150 characters)</option>
+            <option value="medium" selected>Medium (~400)</option>
+            <option value="long">Long (~800)</option>
+          </select>
+        </label>
+        <label>Character set
+          <select id="random-charset"></select>
+        </label>
+        <label class="check"><input type="checkbox" id="random-symbols" /> Symbols</label>
+        <label class="check"><input type="checkbox" id="random-numbers" /> Numbers</label>
+        <button id="btn-random" class="btn-primary" type="button">Start</button>
+      </div>
+    </div>
     <ul id="text-list" class="text-list" role="list"></ul>
     <p id="text-list-empty" class="subtitle hidden">No texts match the selected filters.</p>
   </section>
@@ -85,6 +103,7 @@
   </section>
 
   <script src="texts.js"></script>
+  <script src="words.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
