@@ -258,9 +258,14 @@ function renderTextCard(entry) {
         bucketAvg(saved, 'totalAccuracy') + '% · ' + saved.runs + (saved.runs === 1 ? ' run' : ' runs') + '</span>'
     : '';
 
+  const size = sizeOf(entry.text.length);
+  const sizeLabel = size.charAt(0).toUpperCase() + size.slice(1);
+
   btn.innerHTML =
     '<span class="text-card-title">' + escHtml(entry.title) +
-      ' <span class="badge badge-' + escHtml(entry.difficulty.toLowerCase()) + '">' + escHtml(entry.difficulty) + '</span></span>' +
+      ' <span class="badge badge-' + escHtml(entry.difficulty.toLowerCase()) + '">' + escHtml(entry.difficulty) + '</span>' +
+      ' <span class="badge badge-charset">' + escHtml(charsetOf(entry)) + '</span>' +
+      ' <span class="badge badge-size-' + size + '">' + escHtml(sizeLabel) + '</span></span>' +
     '<span class="text-card-meta">' + wordCount + ' words · ' + entry.text.length + ' characters</span>' +
     cardStats +
     '<span class="text-card-preview">' + escHtml(preview) + '</span>';

@@ -20,6 +20,10 @@
   --corrected:   #9a6700;
   --pending:     #7d8590; /* faded, but still ~3.5:1 on the surface colour */
   --caret-color: #3b82d4;
+  --size-short:  #0f7c8a;
+  --size-medium: #7c5cd8;
+  --size-long:   #b3489b;
+
   --font-mono:   "Courier New", Courier, monospace;
   --font-ui:     -apple-system, "Segoe UI", system-ui, sans-serif;
   color-scheme: light;
@@ -38,6 +42,9 @@
   --corrected:   #d29922;
   --pending:     #6e7681;
   --caret-color: #58a6ff;
+  --size-short:  #39c5cf;
+  --size-medium: #a48bf0;
+  --size-long:   #e07fc4;
   color-scheme: dark;
 }
 
@@ -170,6 +177,10 @@ body {
 .badge-easy   { color: var(--correct); }
 .badge-medium { color: var(--corrected); }
 .badge-hard   { color: var(--wrong); }
+.badge-charset { color: var(--accent); }
+.badge-size-short  { color: var(--size-short); }
+.badge-size-medium { color: var(--size-medium); }
+.badge-size-long   { color: var(--size-long); }
 
 .text-card-meta {
   font-size: 0.8rem;
