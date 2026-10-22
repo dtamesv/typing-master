@@ -198,6 +198,10 @@ function startPractice(entry) {
   showView('practice');
   location.hash = entry.id; // remembered across reloads
 
+  // Reset scroll now that the view is visible (hidden elements ignore scrollTop)
+  charDisplay.scrollTop = 0;
+  window.scrollTo(0, 0);
+
   // Focus the practice area so keydown events fire immediately
   typingInput.value = '';
   typingInput.focus();
