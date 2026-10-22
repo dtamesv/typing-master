@@ -1,0 +1,401 @@
+/* ──────────────────────────────────────────
+   Reset & base
+────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg:          #ffffff;
+  --surface:     #f7f8fa;
+  --border:      #e5e7eb;
+  --text:        #1f2328;
+  --muted:       #57606a;
+  --accent:      #3b82d4;
+  --accent-dark: #2f6fbd; /* white text on this passes AA contrast */
+  --correct:     #1a7f37;
+  --wrong:       #cb2431;
+  --corrected:   #9a6700;
+  --pending:     #7d8590; /* faded, but still ~3.5:1 on the surface colour */
+  --caret-color: #3b82d4;
+  --font-mono:   "Courier New", Courier, monospace;
+  --font-ui:     -apple-system, "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --bg:          #0d1117;
+  --surface:     #161b22;
+  --border:      #30363d;
+  --text:        #e6edf3;
+  --muted:       #9198a1;
+  --accent:      #58a6ff;
+  --accent-dark: #2f6fbd;
+  --correct:     #3fb950;
+  --wrong:       #f85149;
+  --corrected:   #d29922;
+  --pending:     #6e7681;
+  --caret-color: #58a6ff;
+  color-scheme: dark;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-ui);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--bg);
+}
+
+/* ──────────────────────────────────────────
+   View show / hide
+────────────────────────────────────────── */
+.view {
+  min-height: 100vh;
+  padding: 3.5rem 1rem 2rem;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ──────────────────────────────────────────
+   Select view
+────────────────────────────────────────── */
+.app-header {
+  margin-bottom: 2rem;
+}
+
+.app-header h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  color: var(--muted);
+  margin-top: 0.25rem;
+}
+
+.text-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.text-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  text-align: left;
+  width: 100%;
+  font-family: inherit;
+  color: inherit;
+}
+
+.text-card:hover,
+.text-card:focus-visible {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 212, 0.15);
+}
+
+.text-card-title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.text-card-meta {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.text-card-preview {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ──────────────────────────────────────────
+   Practice view
+────────────────────────────────────────── */
+.practice-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.practice-meta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.practice-title {
+  font-weight: 600;
+}
+
+.practice-progress {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.practice-timer {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  color: var(--muted);
+  min-width: 3.5rem;
+  text-align: right;
+}
+
+.practice-area {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  background: var(--surface);
+  cursor: text;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.practice-area:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(59, 130, 212, 0.15);
+}
+
+.char-display {
+  font-family: var(--font-mono);
+  font-size: 1.35rem;
+  line-height: 2.3;
+  white-space: pre-wrap;
+  word-break: break-word;
+  tab-size: 4;
+}
+
+/* Per-character colour states */
+.char-display .ch {
+  position: relative;
+}
+
+.char-display .ch.pending {
+  color: var(--pending);
+}
+
+.char-display .ch.correct {
+  color: var(--correct);
+}
+
+.char-display .ch.wrong {
+  color: var(--wrong);
+}
+
+.char-display .ch.corrected {
+  color: var(--corrected);
+}
+
+/* Expected character shown small above a mistyped one */
+.char-display .ch.wrong::after {
+  content: attr(data-expected);
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  transform: translateX(-50%);
+  font-size: 0.5em;
+  line-height: 1;
+  color: var(--pending);
+  text-decoration: none;
+}
+
+/* Blinking caret on the current (next) character */
+.char-display .ch.current::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 10%;
+  height: 80%;
+  width: 2px;
+  background: var(--caret-color);
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+.hint {
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+/* ──────────────────────────────────────────
+   Results view
+────────────────────────────────────────── */
+.results-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.results-stats dt {
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.results-stats dd {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-top: 0.1rem;
+  font-family: var(--font-mono);
+}
+
+.results-stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+}
+
+.results-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* ──────────────────────────────────────────
+   Buttons
+────────────────────────────────────────── */
+.btn-primary {
+  padding: 0.55rem 1.4rem;
+  background: var(--accent-dark);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.btn-primary:hover {
+  opacity: 0.88;
+}
+
+.btn-ghost {
+  padding: 0.55rem 1rem;
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.btn-ghost:hover {
+  color: var(--text);
+  border-color: var(--text);
+}
+
+.theme-toggle {
+  position: fixed;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 10;
+  padding: 0.35rem 0.8rem;
+  background: var(--surface);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.theme-toggle:hover {
+  color: var(--text);
+  border-color: var(--text);
+}
+
+.btn-primary:focus-visible,
+.btn-ghost:focus-visible,
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ──────────────────────────────────────────
+   Responsive
+────────────────────────────────────────── */
+@media (max-width: 520px) {
+  .view {
+    padding: 3.25rem 0.75rem 1.25rem;
+  }
+
+  .app-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .practice-area {
+    padding: 1rem;
+  }
+
+  .char-display {
+    font-size: 1.1rem;
+  }
+
+  .practice-meta {
+    flex-basis: 100%;
+    order: 3;
+  }
+
+  .practice-timer {
+    margin-left: auto;
+  }
+
+  .results-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .results-stat-card {
+    padding: 0.75rem 0.9rem;
+  }
+
+  .results-stats dd {
+    font-size: 1.35rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .char-display .ch.current::before {
+    animation: none;
+  }
+}

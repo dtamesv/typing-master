@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Typing Practice</title>
+  <link rel="stylesheet" href="style.css" />
+  <script>
+    // Apply saved (or system) theme before first paint to avoid a flash
+    (function () {
+      var t = null;
+      try { t = localStorage.getItem('theme'); } catch (e) {}
+      if (t !== 'light' && t !== 'dark') {
+        t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+</head>
+<body>
+
+  <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle light/dark mode"></button>
+
+  <!-- ═══════════════════ SELECT VIEW ═══════════════════ -->
+  <section id="select-view" class="view">
+    <header class="app-header">
+      <h1>Typing Practice</h1>
+      <p class="subtitle">Pick a text and start typing.</p>
+    </header>
+    <ul id="text-list" class="text-list" role="list"></ul>
+  </section>
+
+  <!-- ═══════════════════ PRACTICE VIEW ═══════════════════ -->
+  <section id="practice-view" class="view hidden">
+    <header class="practice-header">
+      <button id="btn-back-practice" class="btn-ghost" type="button">← Back to list</button>
+      <div class="practice-meta">
+        <span id="practice-title" class="practice-title"></span>
+        <span id="practice-progress" class="practice-progress">0 / 0</span>
+      </div>
+      <span id="practice-timer" class="practice-timer">0:00</span>
+    </header>
+    <div id="practice-area" class="practice-area" tabindex="0" role="textbox" aria-label="Practice area — click to focus and start typing" aria-multiline="true">
+      <div id="char-display" class="char-display"></div>
+    </div>
+    <p class="hint">Click the text area to focus, then start typing. Backspace removes the last character.</p>
+  </section>
+
+  <!-- ═══════════════════ RESULTS VIEW ═══════════════════ -->
+  <section id="results-view" class="view hidden">
+    <header class="app-header">
+      <h1>Results</h1>
+      <p id="results-text-title" class="subtitle"></p>
+    </header>
+    <dl id="results-stats" class="results-stats"></dl>
+    <div class="results-actions">
+      <button id="btn-retry" class="btn-primary" type="button">Retry</button>
+      <button id="btn-back-results" class="btn-ghost" type="button">← Back to list</button>
+    </div>
+  </section>
+
+  <script src="texts.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
