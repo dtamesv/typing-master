@@ -201,7 +201,7 @@ TEXTS.push(
   },
   {
     id: 'long-readme',
-    category: 'Prose',
+    category: 'Code',
     difficulty: 'Hard',
     title: 'Documentation: README',
     text: [
