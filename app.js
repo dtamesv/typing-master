@@ -98,12 +98,14 @@ function addToBucket(b, m) {
   b.totalTime += m.elapsed;
 }
 
-/** Add a finished session to the global and per-text stats; returns the updated stats. */
-function recordRun(textId, metrics) {
+/** Add a finished session to the global stats, and to the per-text stats unless the text is random. */
+function recordRun(entry, metrics) {
   const stats = loadStats();
-  if (!stats.texts[textId]) stats.texts[textId] = newBucket();
   addToBucket(stats.global, metrics);
-  addToBucket(stats.texts[textId], metrics);
+  if (!entry.random) {
+    if (!stats.texts[entry.id]) stats.texts[entry.id] = newBucket();
+    addToBucket(stats.texts[entry.id], metrics);
+  }
   saveStats(stats);
   return stats;
 }
@@ -124,15 +126,15 @@ function statsRow(label, b, perText) {
     '<td>' + (perText ? formatTime(b.totalTime) : '-') + '</td></tr>';
 }
 
-/** Table comparing this text's history with the global history. */
-function renderHistory(stats, textId) {
+/** Table comparing this text's history with the global history (random texts only get the global row). */
+function renderHistory(stats, entry) {
   resultsHistory.innerHTML =
     '<h3>History</h3>' +
     '<table class="stats-table"><thead><tr>' +
       '<th></th><th>Runs</th><th>Best WPM</th><th>Avg WPM</th>' +
       '<th>Best acc.</th><th>Avg acc.</th><th>Total time</th>' +
     '</tr></thead><tbody>' +
-      statsRow('This text', stats.texts[textId] || newBucket(), true) +
+      (entry.random ? '' : statsRow('This text', stats.texts[entry.id] || newBucket(), true)) +
       statsRow('All texts', stats.global, false) +
     '</tbody></table>';
 }
@@ -717,7 +719,7 @@ function showResults(metrics) {
     + buildStatCard('Errors',          metrics.errors)
     + buildStatCard('Corrected errors', metrics.corrected);
 
-  renderHistory(recordRun(state.currentText.id, metrics), state.currentText.id);
+  renderHistory(recordRun(state.currentText, metrics), state.currentText);
 
   resultsPanel.classList.remove('hidden');
   practiceHint.classList.add('hidden');
