@@ -120,6 +120,31 @@ body {
   font-weight: 600;
 }
 
+.text-group-title {
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.badge {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0 0.5rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.5;
+  vertical-align: middle;
+}
+
+.badge-easy   { color: var(--correct); }
+.badge-medium { color: var(--corrected); }
+.badge-hard   { color: var(--wrong); }
+
 .text-card-meta {
   font-size: 0.8rem;
   color: var(--muted);

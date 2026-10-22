@@ -1,36 +1,50 @@
 const TEXTS = [
   {
     id: 'home-row',
+    category: 'Drills',
+    difficulty: 'Easy',
     title: 'Home Row Drill',
     text: 'asdfjkl; asdfjkl; asdf jkl; fdsa ;lkj fdjk slaf jdks lfaj dksl afkj dsla kfjs dlak fjsd lkaf jsdk lafs jdkl afsd',
   },
   {
     id: 'short-sentence',
+    category: 'Prose',
+    difficulty: 'Easy',
     title: 'The Quick Brown Fox',
     text: 'The quick brown fox jumps over the lazy dog.',
   },
   {
     id: 'punctuation-numbers',
+    category: 'Prose',
+    difficulty: 'Medium',
     title: 'Punctuation & Numbers',
     text: 'In 2024, the server responded with HTTP 404 - "Not Found!" The retry (after 3 seconds) returned a 200 OK status: all good.',
   },
   {
     id: 'paragraph',
+    category: 'Prose',
+    difficulty: 'Medium',
     title: 'Short Paragraph',
     text: 'Touch typing is the ability to type without looking at the keyboard. With enough practice, your fingers learn the positions of every key by muscle memory alone. Start slow, focus on accuracy, and speed will follow naturally.',
   },
   {
     id: 'code-snippet',
+    category: 'Code',
+    difficulty: 'Medium',
     title: 'Code-like Text',
     text: 'function greet(name) { return "Hello, " + name + "!"; } const msg = greet("world"); console.log(msg);',
   },
   {
     id: 'common-words',
+    category: 'Drills',
+    difficulty: 'Medium',
     title: 'Common English Words',
     text: 'the be to of and a in that have it for not on with he as you do at this but his by from they we say her she or an will my one all would there their what so up out if about who get which go me when make can like time no just him know take people into year your good some could them see other than then now look only come its over think also back after use two how our work first well way even new want because any these give day most us',
   },
   {
     id: 'code-js-function',
+    category: 'Code',
+    difficulty: 'Medium',
     title: 'JavaScript: Function',
     text: [
       'function sum(numbers) {',
@@ -46,6 +60,8 @@ const TEXTS = [
   },
   {
     id: 'code-js-tabs',
+    category: 'Code',
+    difficulty: 'Medium',
     title: 'JavaScript: Class',
     text: [
       'class Counter {',
@@ -62,6 +78,8 @@ const TEXTS = [
   },
   {
     id: 'code-python',
+    category: 'Code',
+    difficulty: 'Medium',
     title: 'Python: Fibonacci',
     text: [
       'def fibonacci(n):',
@@ -75,6 +93,8 @@ const TEXTS = [
   },
   {
     id: 'code-html',
+    category: 'Code',
+    difficulty: 'Hard',
     title: 'HTML: Simple Page',
     text: [
       '<!DOCTYPE html>',
@@ -91,6 +111,8 @@ const TEXTS = [
   },
   {
     id: 'code-sql',
+    category: 'Code',
+    difficulty: 'Hard',
     title: 'SQL: Query',
     text: [
       'SELECT name, COUNT(*) AS total',
@@ -103,6 +125,8 @@ const TEXTS = [
   },
   {
     id: 'code-css',
+    category: 'Code',
+    difficulty: 'Medium',
     title: 'CSS: Button Style',
     text: [
       '.button {',
@@ -119,6 +143,8 @@ const TEXTS = [
   },
   {
     id: 'symbols',
+    category: 'Drills',
+    difficulty: 'Hard',
     title: 'Symbols Drill',
     text: '!@#$ %^&* ()_+ {}|: "<>? [];\' ,./ `~-= \\ !@#$ %^&* ()_+ {}|: "<>?',
   },

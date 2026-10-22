@@ -29,6 +29,8 @@ Edit `texts.js` and add an object to the `TEXTS` array:
 ```js
 {
   id: 'my-text',          // unique, no spaces
+  category: 'Prose',      // group heading in the list (any name; new names create a new group)
+  difficulty: 'Easy',     // 'Easy', 'Medium' or 'Hard'
   title: 'My Custom Text', // shown in the list
   text: 'The text you want to practise.',
 },

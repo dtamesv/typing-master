@@ -83,29 +83,49 @@ function showView(name) {
 function renderTextList() {
   textList.innerHTML = '';
 
-  TEXTS.forEach(function (entry) {
-    const li = document.createElement('li');
-
-    const btn = document.createElement('button');
-    btn.className = 'text-card';
-    btn.type = 'button';
-
-    const preview = entry.text.length > 80
-      ? entry.text.slice(0, 80) + '…'
-      : entry.text;
-
-    btn.innerHTML =
-      '<span class="text-card-title">' + escHtml(entry.title) + '</span>' +
-      '<span class="text-card-meta">' + entry.text.length + ' characters</span>' +
-      '<span class="text-card-preview">' + escHtml(preview) + '</span>';
-
-    btn.addEventListener('click', function () {
-      startPractice(entry);
-    });
-
-    li.appendChild(btn);
-    textList.appendChild(li);
+  const levels = ['Easy', 'Medium', 'Hard'];
+  const categories = [];
+  TEXTS.forEach(function (t) {
+    if (categories.indexOf(t.category) === -1) categories.push(t.category);
   });
+
+  categories.forEach(function (category) {
+    const heading = document.createElement('li');
+    heading.className = 'text-group-title';
+    heading.textContent = category;
+    textList.appendChild(heading);
+
+    TEXTS
+      .filter(function (t) { return t.category === category; })
+      .sort(function (a, b) { return levels.indexOf(a.difficulty) - levels.indexOf(b.difficulty); })
+      .forEach(renderTextCard);
+  });
+}
+
+/** Append one text card (button) to #text-list. @param {object} entry */
+function renderTextCard(entry) {
+  const li = document.createElement('li');
+
+  const btn = document.createElement('button');
+  btn.className = 'text-card';
+  btn.type = 'button';
+
+  const preview = entry.text.length > 80
+    ? entry.text.slice(0, 80) + '…'
+    : entry.text;
+
+  btn.innerHTML =
+    '<span class="text-card-title">' + escHtml(entry.title) +
+      ' <span class="badge badge-' + escHtml(entry.difficulty.toLowerCase()) + '">' + escHtml(entry.difficulty) + '</span></span>' +
+    '<span class="text-card-meta">' + entry.text.length + ' characters</span>' +
+    '<span class="text-card-preview">' + escHtml(preview) + '</span>';
+
+  btn.addEventListener('click', function () {
+    startPractice(entry);
+  });
+
+  li.appendChild(btn);
+  textList.appendChild(li);
 }
 
 // ── Practice view ─────────────────────────────────────────────
