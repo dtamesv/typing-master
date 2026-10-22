@@ -209,6 +209,7 @@ function startPractice(entry) {
  */
 function renderCharSpans(text) {
   charDisplay.innerHTML = '';
+  charDisplay.scrollTop = 0;
 
   for (let i = 0; i < text.length; i++) {
     const span = document.createElement('span');
@@ -253,7 +254,11 @@ function updateCaret(index) {
   const old = charDisplay.querySelector('.ch.current');
   if (old) old.classList.remove('current');
   const next = charDisplay.children[index];
-  if (next) next.classList.add('current');
+  if (next) {
+    next.classList.add('current');
+    // Keep the current line about a third of the way down the visible box
+    charDisplay.scrollTop = Math.max(0, next.offsetTop - charDisplay.clientHeight / 3);
+  }
 }
 
 /** Make whitespace characters visible when shown as a mistake marker. */

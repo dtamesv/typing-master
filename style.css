@@ -257,6 +257,9 @@ body {
   white-space: pre-wrap;
   word-break: break-word;
   tab-size: 4;
+  position: relative;      /* so span.offsetTop is relative to this box */
+  max-height: calc(2.3em * 7); /* show about 7 lines, then scroll */
+  overflow-y: auto;
 }
 
 /* Per-character colour states */
