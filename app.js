@@ -30,6 +30,7 @@ const state = {
 const selectView       = document.getElementById('select-view');
 const practiceView     = document.getElementById('practice-view');
 const resultsPanel     = document.getElementById('results-panel');
+const practiceHint     = document.getElementById('practice-hint');
 
 const textList         = document.getElementById('text-list');
 const practiceTitle    = document.getElementById('practice-title');
@@ -192,6 +193,7 @@ function startPractice(entry) {
 
   renderCharSpans(entry.text);
   resultsPanel.classList.add('hidden');
+  practiceHint.classList.remove('hidden');
 
   showView('practice');
   location.hash = entry.id; // remembered across reloads
@@ -471,6 +473,7 @@ function showResults(metrics) {
     + buildStatCard('Corrected errors', metrics.corrected);
 
   resultsPanel.classList.remove('hidden');
+  practiceHint.classList.add('hidden');
   resultsPanel.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 
