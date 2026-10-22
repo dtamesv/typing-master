@@ -377,10 +377,20 @@ function visibleChar(ch) {
 function setCharStatus(index, status, typedCh) {
   const span = charDisplay.children[index];
   const expected = state.currentText.text[index];
-  span.classList.remove('pending', 'correct', 'wrong', 'corrected', 'wrong-tab');
+  span.classList.remove('pending', 'correct', 'wrong', 'corrected', 'wrong-tab', 'corrected-tab');
   span.classList.add(status);
   delete span.dataset.typed;
-  if (status === 'wrong' && expected === '\t') {
+  if (status === 'corrected' && /\s/.test(expected)) {
+    // A fixed whitespace character would be invisible, so draw its marker (yellow)
+    if (expected === '\t') {
+      span.textContent = expected; // keep the tab's width
+      span.classList.add('corrected-tab');
+      span.dataset.typed = visibleChar(expected);
+    } else {
+      span.textContent = visibleChar(expected) + (expected === '\n' ? '\n' : '');
+    }
+    delete span.dataset.expected;
+  } else if (status === 'wrong' && expected === '\t') {
     // Keep the real tab in the span (so its width is preserved) and draw the typed char over it via CSS
     span.textContent = expected;
     span.classList.add('wrong-tab');

@@ -313,6 +313,18 @@ body {
   transform: none;
 }
 
+/* Corrected Tab: keep the tab's width and draw its marker at the start, in the corrected colour */
+.char-display .ch.corrected-tab {
+  color: transparent;
+}
+
+.char-display .ch.corrected-tab::before {
+  content: attr(data-typed);
+  position: absolute;
+  left: 0;
+  color: var(--corrected);
+}
+
 /* Blinking caret on the current (next) character */
 .char-display .ch.current::before {
   content: '';
