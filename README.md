@@ -41,7 +41,7 @@ Notes:
 - Use plain characters you can type on your keyboard. Characters you can't type will block completion.
 - Use `\n` inside the string for a line break; the user presses Enter to type it.
 - Use `\t` for a tab character; the user presses Tab to type it. Indentation with spaces is typed as ordinary spaces.
-- Stick to characters on a standard keyboard (plain `-` rather than long dashes, straight quotes rather than curly ones).
+- Stick to characters on a standard keyboard (plain `-` rather than long dashes, straight quotes rather than curly ones). Accented letters such as `á ñ ü ¿ ¡` are fine for texts meant for a Spanish layout (see the "Spanish" category); save `texts.js` as UTF-8.
 - Quote the string with `'...'` and escape any apostrophe as `\'`, or use `"..."` or backticks instead.
 
 ## Files
