@@ -67,18 +67,15 @@
       <div id="char-display" class="char-display"></div>
     </div>
     <p class="hint">Click the text area to focus, then start typing. Backspace removes the last character.</p>
-  </section>
 
-  <!-- ═══════════════════ RESULTS VIEW ═══════════════════ -->
-  <section id="results-view" class="view hidden">
-    <header class="app-header">
-      <h1>Results</h1>
-      <p id="results-text-title" class="subtitle"></p>
-    </header>
-    <dl id="results-stats" class="results-stats"></dl>
-    <div class="results-actions">
-      <button id="btn-retry" class="btn-primary" type="button">Retry</button>
-      <button id="btn-back-results" class="btn-ghost" type="button">← Back to list</button>
+    <!-- Results appear here when the text is finished -->
+    <div id="results-panel" class="results-panel hidden">
+      <h2>Results</h2>
+      <dl id="results-stats" class="results-stats"></dl>
+      <div class="results-actions">
+        <button id="btn-retry" class="btn-primary" type="button">Retry</button>
+        <button id="btn-back-results" class="btn-ghost" type="button">← Back to list</button>
+      </div>
     </div>
   </section>
 

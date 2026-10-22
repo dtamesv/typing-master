@@ -339,6 +339,15 @@ body {
 /* ──────────────────────────────────────────
    Results view
 ────────────────────────────────────────── */
+.results-panel {
+  margin-top: 1.5rem;
+}
+
+.results-panel h2 {
+  font-size: 1.2rem;
+  margin-bottom: 0.75rem;
+}
+
 .results-stats {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));

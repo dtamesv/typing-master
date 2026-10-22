@@ -29,7 +29,7 @@ const state = {
 // ── DOM refs ─────────────────────────────────────────────────
 const selectView       = document.getElementById('select-view');
 const practiceView     = document.getElementById('practice-view');
-const resultsView      = document.getElementById('results-view');
+const resultsPanel     = document.getElementById('results-panel');
 
 const textList         = document.getElementById('text-list');
 const practiceTitle    = document.getElementById('practice-title');
@@ -42,7 +42,6 @@ const charDisplay      = document.getElementById('char-display');
 const btnBackPractice  = document.getElementById('btn-back-practice');
 const btnRetry         = document.getElementById('btn-retry');
 const btnBackResults   = document.getElementById('btn-back-results');
-const resultsTextTitle = document.getElementById('results-text-title');
 const resultsStats     = document.getElementById('results-stats');
 
 // ── Theme (light / dark) ─────────────────────────────────────
@@ -68,13 +67,12 @@ updateThemeToggleLabel();
 
 /**
  * Show exactly one view, hide the others.
- * @param {'select' | 'practice' | 'results'} name
+ * @param {'select' | 'practice'} name
  */
 function showView(name) {
   if (name === 'select' && location.hash) location.hash = '';
   selectView.classList.toggle('hidden', name !== 'select');
   practiceView.classList.toggle('hidden', name !== 'practice');
-  resultsView.classList.toggle('hidden', name !== 'results');
 }
 
 // ── Select view ──────────────────────────────────────────────
@@ -193,6 +191,7 @@ function startPractice(entry) {
   practiceTimer.textContent    = '0:00';
 
   renderCharSpans(entry.text);
+  resultsPanel.classList.add('hidden');
 
   showView('practice');
   location.hash = entry.id; // remembered across reloads
@@ -459,15 +458,11 @@ typingInput.addEventListener('compositionend', flushTypingInput);
 // ── Results view ──────────────────────────────────────────────
 
 /**
- * Populate and show the results view.
+ * Populate and show the results panel below the text box (typing is already blocked).
  * @param {{ netWpm: number, rawWpm: number, accuracy: number,
  *            elapsed: number, errors: number, corrected: number }} metrics
  */
 function showResults(metrics) {
-  resultsTextTitle.textContent = state.currentText
-    ? state.currentText.title
-    : '';
-
   resultsStats.innerHTML = buildStatCard('Net WPM',         metrics.netWpm)
     + buildStatCard('Raw WPM',         metrics.rawWpm)
     + buildStatCard('Accuracy',        metrics.accuracy + '%')
@@ -475,7 +470,8 @@ function showResults(metrics) {
     + buildStatCard('Errors',          metrics.errors)
     + buildStatCard('Corrected errors', metrics.corrected);
 
-  showView('results');
+  resultsPanel.classList.remove('hidden');
+  resultsPanel.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 
 /**
