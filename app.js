@@ -113,15 +113,15 @@ function bucketAvg(b, field) {
   return b.runs ? Math.round(b[field] / b.runs) : 0;
 }
 
-/** One table row for a stats bucket. Total time is only meaningful per text, so global rows skip it. */
-function statsRow(label, b, showTime) {
+/** One table row for a stats bucket. Best accuracy and total time are only meaningful per text, so global rows skip them. */
+function statsRow(label, b, perText) {
   return '<tr><th scope="row">' + escHtml(label) + '</th>' +
     '<td>' + b.runs + '</td>' +
     '<td>' + b.bestWpm + '</td>' +
     '<td>' + bucketAvg(b, 'totalWpm') + '</td>' +
-    '<td>' + b.bestAccuracy + '%</td>' +
+    '<td>' + (perText ? b.bestAccuracy + '%' : '-') + '</td>' +
     '<td>' + bucketAvg(b, 'totalAccuracy') + '%</td>' +
-    '<td>' + (showTime ? formatTime(b.totalTime) : '-') + '</td></tr>';
+    '<td>' + (perText ? formatTime(b.totalTime) : '-') + '</td></tr>';
 }
 
 /** Table comparing this text's history with the global history. */
