@@ -346,6 +346,7 @@ const randomSize    = document.getElementById('random-size');
 const randomCharset = document.getElementById('random-charset');
 const randomSymbols = document.getElementById('random-symbols');
 const randomNumbers = document.getElementById('random-numbers');
+const randomUpper   = document.getElementById('random-uppercase');
 const btnRandom     = document.getElementById('btn-random');
 
 const RANDOM_LENGTHS = { short: 150, medium: 400, long: 800 };
@@ -358,14 +359,27 @@ function pick(list) {
   return list[Math.floor(Math.random() * list.length)];
 }
 
-/** Build one random sentence from a word set (see words.js). */
-function randomSentence(set, withSymbols, withNumbers) {
+/** Randomly capitalise a word: ~1 in 6 words, half of them only the first letter, half the whole word. */
+function randomCase(word) {
+  if (Math.random() >= 0.17) return word;
+  return Math.random() < 0.5
+    ? word.charAt(0).toUpperCase() + word.slice(1)
+    : word.toUpperCase();
+}
+
+/**
+ * Build one random sentence from a word set (see words.js).
+ * @param {{ symbols: boolean, numbers: boolean, uppercase: boolean }} opts
+ */
+function randomSentence(set, opts) {
+  const withSymbols = opts.symbols;
   const count = randomInt(5, 12);
   const tokens = [];
 
   for (let i = 0; i < count; i++) {
-    let token = withNumbers && Math.random() < 0.15 ? String(randomInt(1, 9999)) : pick(set.words);
+    let token = opts.numbers && Math.random() < 0.15 ? String(randomInt(1, 9999)) : pick(set.words);
     const isNumber = /^\d+$/.test(token);
+    if (opts.uppercase && !isNumber) token = randomCase(token);
 
     if (withSymbols) {
       if (i === 0) token = token.charAt(0).toUpperCase() + token.slice(1);
@@ -388,14 +402,14 @@ function randomSentence(set, withSymbols, withNumbers) {
   return sentence;
 }
 
-/** Generate a random text of roughly the requested size. Without symbols it is plain lowercase words. */
-function generateRandomText(size, charset, withSymbols, withNumbers) {
+/** Generate a random text of roughly the requested size. With every option off it is plain lowercase words. */
+function generateRandomText(size, charset, opts) {
   const set = WORD_SETS[charset] || WORD_SETS.Standard;
   const target = RANDOM_LENGTHS[size];
   const sentences = [];
   let length = 0;
   while (length < target) {
-    const sentence = randomSentence(set, withSymbols, withNumbers);
+    const sentence = randomSentence(set, opts);
     sentences.push(sentence);
     length += sentence.length + 1;
   }
@@ -410,7 +424,11 @@ Object.keys(WORD_SETS).forEach(function (name) {
 });
 
 btnRandom.addEventListener('click', function () {
-  const text = generateRandomText(randomSize.value, randomCharset.value, randomSymbols.checked, randomNumbers.checked);
+  const text = generateRandomText(randomSize.value, randomCharset.value, {
+    symbols: randomSymbols.checked,
+    numbers: randomNumbers.checked,
+    uppercase: randomUpper.checked,
+  });
   startPractice(randomEntry(text, 'Random text (' + randomSize.value + ', ' + randomCharset.value + ')'));
 });
 
