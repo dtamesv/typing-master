@@ -233,10 +233,45 @@ function renderTextList() {
   });
 }
 
-filterCategory.addEventListener('change', renderTextList);
-filterCharset.addEventListener('change', renderTextList);
-filterDifficulty.addEventListener('change', renderTextList);
-filterSize.addEventListener('change', renderTextList);
+// Filters are mirrored in the URL query string: ?category=Code&charset=Spanish&difficulty=Hard&size=long
+const FILTER_PARAMS = [
+  ['category',   filterCategory],
+  ['charset',    filterCharset],
+  ['difficulty', filterDifficulty],
+  ['size',       filterSize],
+];
+
+/** Select the filter values given in the URL; unknown values are ignored. */
+function applyFiltersFromUrl() {
+  const params = new URLSearchParams(location.search);
+  FILTER_PARAMS.forEach(function (pair) {
+    const value = params.get(pair[0]);
+    if (value === null) return;
+    pair[1].value = value;
+    if (pair[1].value !== value) pair[1].value = ''; // not a valid option
+  });
+}
+
+/** Write the active filters to the URL (replacing the current history entry). */
+function updateUrlFromFilters() {
+  const params = new URLSearchParams();
+  FILTER_PARAMS.forEach(function (pair) {
+    if (pair[1].value) params.set(pair[0], pair[1].value);
+  });
+  const query = params.toString();
+  try {
+    history.replaceState(null, '', location.pathname + (query ? '?' + query : '') + location.hash);
+  } catch (e) { /* some browsers block this on file:// pages */ }
+}
+
+function onFilterChange() {
+  updateUrlFromFilters();
+  renderTextList();
+}
+
+FILTER_PARAMS.forEach(function (pair) {
+  pair[1].addEventListener('change', onFilterChange);
+});
 
 /** Append one text card (button) to #text-list. @param {object} entry */
 function renderTextCard(entry) {
@@ -673,6 +708,7 @@ window.addEventListener('hashchange', function () {
 
 // ── Init ──────────────────────────────────────────────────────
 populateCategoryFilter();
+applyFiltersFromUrl();
 renderTextList();
 const savedEntry = TEXTS.find(function (t) { return t.id === location.hash.slice(1); });
 if (savedEntry) {
