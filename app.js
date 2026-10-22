@@ -81,7 +81,13 @@ function showView(name) {
 
 const filterCategory   = document.getElementById('filter-category');
 const filterDifficulty = document.getElementById('filter-difficulty');
+const filterSize       = document.getElementById('filter-size');
 const textListEmpty    = document.getElementById('text-list-empty');
+
+/** @param {number} length @returns {'short' | 'medium' | 'long'} */
+function sizeOf(length) {
+  return length < 200 ? 'short' : length <= 600 ? 'medium' : 'long';
+}
 
 /** Fill the category filter with "All" plus every category found in TEXTS. */
 function populateCategoryFilter() {
@@ -106,7 +112,8 @@ function renderTextList() {
   const levels = ['Easy', 'Medium', 'Hard'];
   const visible = TEXTS.filter(function (t) {
     return (!filterCategory.value || t.category === filterCategory.value)
-      && (!filterDifficulty.value || t.difficulty === filterDifficulty.value);
+      && (!filterDifficulty.value || t.difficulty === filterDifficulty.value)
+      && (!filterSize.value || sizeOf(t.text.length) === filterSize.value);
   });
   textListEmpty.classList.toggle('hidden', visible.length > 0);
 
@@ -130,6 +137,7 @@ function renderTextList() {
 
 filterCategory.addEventListener('change', renderTextList);
 filterDifficulty.addEventListener('change', renderTextList);
+filterSize.addEventListener('change', renderTextList);
 
 /** Append one text card (button) to #text-list. @param {object} entry */
 function renderTextCard(entry) {
