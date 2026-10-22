@@ -148,6 +148,71 @@ function renderGlobalSummary() {
     bucketAvg(g, 'totalAccuracy') + '%';
 }
 
+// ── URL / history ────────────────────────────────────────────
+// A text is stored in the URL as #text-id; a random text as ?random=<encoded text>.
+// Opening a text pushes a history entry, so the browser's Back button returns to the list.
+
+/** Build the practice entry for a random text. @param {string} text */
+function randomEntry(text, title) {
+  return { id: 'random', random: true, title: title || 'Random text', text: text };
+}
+
+/** URL of the list view: current filters, no open text. */
+function listUrl() {
+  const params = new URLSearchParams(location.search);
+  params.delete('random');
+  const query = params.toString();
+  return location.pathname + (query ? '?' + query : '');
+}
+
+/** Push a history entry for the open text (does nothing if the URL is already that one). */
+function pushPracticeUrl(entry) {
+  const params = new URLSearchParams(location.search);
+  let hash = '';
+  if (entry.random) {
+    params.set('random', entry.text);
+  } else {
+    params.delete('random');
+    hash = '#' + entry.id;
+  }
+  const query = params.toString();
+  const url = location.pathname + (query ? '?' + query : '') + hash;
+  if (url === location.pathname + location.search + location.hash) return;
+  try {
+    history.pushState({ practice: true }, '', url);
+  } catch (e) { /* some browsers block this on file:// pages */ }
+}
+
+/** Return to the list: step back in history if the text was opened from it, otherwise just swap the URL. */
+function goToList() {
+  stopTimer();
+  state.finished = true;
+  if (history.state && history.state.practice) {
+    history.back(); // the popstate handler shows the list
+    return;
+  }
+  try { history.replaceState(null, '', listUrl()); } catch (e) { /* ignore */ }
+  showView('select');
+}
+
+/** Show whatever the URL says: a random text, a saved text, or the list. */
+function syncViewFromUrl() {
+  const randomText = new URLSearchParams(location.search).get('random');
+  const entry = randomText
+    ? randomEntry(randomText)
+    : TEXTS.find(function (t) { return t.id === location.hash.slice(1); });
+
+  if (!entry) {
+    stopTimer();
+    state.finished = true;
+    showView('select');
+    return;
+  }
+  const alreadyOpen = !practiceView.classList.contains('hidden') && state.currentText
+    && state.currentText.id === entry.id && state.currentText.text === entry.text;
+  if (!alreadyOpen) startPractice(entry, true);
+}
+
 // ── View helpers ─────────────────────────────────────────────
 
 /**
@@ -156,7 +221,6 @@ function renderGlobalSummary() {
  */
 function showView(name) {
   if (name === 'select') {
-    if (location.hash) location.hash = '';
     renderGlobalSummary();
     renderTextList(); // refresh per-text stats on the cards
   }
@@ -254,15 +318,16 @@ function applyFiltersFromUrl() {
   });
 }
 
-/** Write the active filters to the URL (replacing the current history entry). */
+/** Write the active filters to the URL (replacing the current history entry), keeping other parameters. */
 function updateUrlFromFilters() {
-  const params = new URLSearchParams();
+  const params = new URLSearchParams(location.search);
   FILTER_PARAMS.forEach(function (pair) {
     if (pair[1].value) params.set(pair[0], pair[1].value);
+    else params.delete(pair[0]);
   });
   const query = params.toString();
   try {
-    history.replaceState(null, '', location.pathname + (query ? '?' + query : '') + location.hash);
+    history.replaceState(history.state, '', location.pathname + (query ? '?' + query : '') + location.hash);
   } catch (e) { /* some browsers block this on file:// pages */ }
 }
 
@@ -346,12 +411,7 @@ Object.keys(WORD_SETS).forEach(function (name) {
 
 btnRandom.addEventListener('click', function () {
   const text = generateRandomText(randomSize.value, randomCharset.value, randomSymbols.checked, randomNumbers.checked);
-  startPractice({
-    id: 'random',
-    random: true,
-    title: 'Random text (' + randomSize.value + ', ' + randomCharset.value + ')',
-    text: text,
-  });
+  startPractice(randomEntry(text, 'Random text (' + randomSize.value + ', ' + randomCharset.value + ')'));
 });
 
 /** Append one text card (button) to #text-list. @param {object} entry */
@@ -399,8 +459,9 @@ function renderTextCard(entry) {
 /**
  * Enter the practice view for the given text entry and reset all session state.
  * @param {{ id: string, title: string, text: string }} entry
+ * @param {boolean} [fromUrl] true when the URL already describes this text (page load, Back/Forward): no history entry is added
  */
-function startPractice(entry) {
+function startPractice(entry, fromUrl) {
   stopTimer();
 
   state.currentText         = entry;
@@ -424,12 +485,7 @@ function startPractice(entry) {
   practiceHint.classList.remove('hidden');
 
   showView('practice');
-  if (entry.random) {
-    // Random texts can't be restored from the URL: clear the hash without triggering hashchange
-    try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* ignore */ }
-  } else {
-    location.hash = entry.id; // remembered across reloads
-  }
+  if (!fromUrl) pushPracticeUrl(entry); // remembered across reloads
 
   // Reset scroll now that the view is visible (hidden elements ignore scrollTop)
   charDisplay.scrollTop = 0;
@@ -479,9 +535,7 @@ function stopTimer() {
 
 /** Abandon the current session and return to the selection view. */
 function abandonPractice() {
-  stopTimer();
-  state.finished = true;
-  showView('select');
+  goToList();
 }
 
 /**
@@ -776,29 +830,13 @@ btnRetry.addEventListener('click', function () {
   }
 });
 
-btnBackResults.addEventListener('click', function () {
-  showView('select');
-});
+btnBackResults.addEventListener('click', goToList);
 
-// Keep the view in sync when the hash changes (browser Back/Forward, manual edit)
-window.addEventListener('hashchange', function () {
-  const entry = TEXTS.find(function (t) { return t.id === location.hash.slice(1); });
-  if (!entry) {
-    stopTimer();
-    state.finished = true;
-    showView('select');
-  } else if (!(state.currentText === entry && selectView.classList.contains('hidden'))) {
-    startPractice(entry);
-  }
-});
+// Keep the view in sync with the URL on browser Back/Forward (also fires for manual #hash edits)
+window.addEventListener('popstate', syncViewFromUrl);
 
 // ── Init ──────────────────────────────────────────────────────
 populateCategoryFilter();
 applyFiltersFromUrl();
 renderTextList();
-const savedEntry = TEXTS.find(function (t) { return t.id === location.hash.slice(1); });
-if (savedEntry) {
-  startPractice(savedEntry);
-} else {
-  showView('select');
-}
+syncViewFromUrl();
