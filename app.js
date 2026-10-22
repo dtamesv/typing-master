@@ -36,6 +36,7 @@ const practiceTitle    = document.getElementById('practice-title');
 const practiceProgress = document.getElementById('practice-progress');
 const practiceTimer    = document.getElementById('practice-timer');
 const practiceArea     = document.getElementById('practice-area');
+const typingInput      = document.getElementById('typing-input');
 const charDisplay      = document.getElementById('char-display');
 
 const btnBackPractice  = document.getElementById('btn-back-practice');
@@ -58,7 +59,7 @@ themeToggle.addEventListener('click', function () {
   try { localStorage.setItem('theme', next); } catch (e) { /* storage unavailable */ }
   updateThemeToggleLabel();
   // Return focus to the practice area so typing can continue
-  if (!practiceView.classList.contains('hidden') && !state.finished) practiceArea.focus();
+  if (!practiceView.classList.contains('hidden') && !state.finished) typingInput.focus();
 });
 
 updateThemeToggleLabel();
@@ -70,6 +71,7 @@ updateThemeToggleLabel();
  * @param {'select' | 'practice' | 'results'} name
  */
 function showView(name) {
+  if (name === 'select' && location.hash) location.hash = '';
   selectView.classList.toggle('hidden', name !== 'select');
   practiceView.classList.toggle('hidden', name !== 'practice');
   resultsView.classList.toggle('hidden', name !== 'results');
@@ -134,9 +136,11 @@ function startPractice(entry) {
   renderCharSpans(entry.text);
 
   showView('practice');
+  location.hash = entry.id; // remembered across reloads
 
   // Focus the practice area so keydown events fire immediately
-  practiceArea.focus();
+  typingInput.value = '';
+  typingInput.focus();
 }
 
 /**
@@ -342,8 +346,15 @@ function finishPractice() {
   });
 }
 
-practiceArea.addEventListener('keydown', function (e) {
+// Click anywhere in the practice area to (re)focus the hidden input
+practiceArea.addEventListener('click', function () {
+  typingInput.focus();
+});
+
+// Special keys are handled here; regular and dead-key characters arrive via the input events below
+typingInput.addEventListener('keydown', function (e) {
   if (state.finished || !state.currentText) return;
+  if (e.isComposing || e.keyCode === 229) return; // mid-composition (e.g. after a dead key)
 
   if (e.key === 'Escape') {
     e.preventDefault();
@@ -361,11 +372,25 @@ practiceArea.addEventListener('keydown', function (e) {
   } else if (e.key === 'Tab') {
     e.preventDefault(); // keep focus in the practice area
     typeChar('\t');
-  } else if (e.key.length === 1) {
-    e.preventDefault(); // stops Space from scrolling the page
-    typeChar(e.key);
   }
 });
+
+/** Type every character currently in the hidden input, then clear it. */
+function flushTypingInput() {
+  const chars = Array.from(typingInput.value);
+  typingInput.value = '';
+  if (state.finished || !state.currentText) return;
+  chars.forEach(function (ch) {
+    if (!state.finished) typeChar(ch);
+  });
+}
+
+typingInput.addEventListener('input', function (e) {
+  if (e.isComposing) return; // wait for compositionend
+  flushTypingInput();
+});
+
+typingInput.addEventListener('compositionend', flushTypingInput);
 
 // ── Results view ──────────────────────────────────────────────
 
@@ -443,6 +468,23 @@ btnBackResults.addEventListener('click', function () {
   showView('select');
 });
 
+// Keep the view in sync when the hash changes (browser Back/Forward, manual edit)
+window.addEventListener('hashchange', function () {
+  const entry = TEXTS.find(function (t) { return t.id === location.hash.slice(1); });
+  if (!entry) {
+    stopTimer();
+    state.finished = true;
+    showView('select');
+  } else if (!(state.currentText === entry && selectView.classList.contains('hidden'))) {
+    startPractice(entry);
+  }
+});
+
 // ── Init ──────────────────────────────────────────────────────
 renderTextList();
-showView('select');
+const savedEntry = TEXTS.find(function (t) { return t.id === location.hash.slice(1); });
+if (savedEntry) {
+  startPractice(savedEntry);
+} else {
+  showView('select');
+}

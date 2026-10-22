@@ -176,12 +176,27 @@ body {
   background: var(--surface);
   cursor: text;
   outline: none;
+  position: relative;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
-.practice-area:focus {
+.practice-area:focus-within {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(59, 130, 212, 0.15);
+}
+
+/* Invisible input that receives keystrokes (needed for dead keys such as ^ and IME input) */
+.typing-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  border: 0;
+  padding: 0;
+  resize: none;
+  pointer-events: none;
 }
 
 .char-display {
