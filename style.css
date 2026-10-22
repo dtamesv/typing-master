@@ -120,6 +120,32 @@ body {
   font-weight: 600;
 }
 
+.filters {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.filters select {
+  min-width: 9rem;
+  padding: 0.35rem 0.5rem;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
 .text-group-title {
   margin-top: 0.75rem;
   font-size: 0.8rem;

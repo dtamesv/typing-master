@@ -27,7 +27,21 @@
       <h1>Typing Practice</h1>
       <p class="subtitle">Pick a text and start typing.</p>
     </header>
+    <div class="filters">
+      <label>Category
+        <select id="filter-category"></select>
+      </label>
+      <label>Difficulty
+        <select id="filter-difficulty">
+          <option value="">All</option>
+          <option value="Easy">Easy</option>
+          <option value="Medium">Medium</option>
+          <option value="Hard">Hard</option>
+        </select>
+      </label>
+    </div>
     <ul id="text-list" class="text-list" role="list"></ul>
+    <p id="text-list-empty" class="subtitle hidden">No texts match the selected filters.</p>
   </section>
 
   <!-- ═══════════════════ PRACTICE VIEW ═══════════════════ -->

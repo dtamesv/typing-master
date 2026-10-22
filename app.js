@@ -79,13 +79,39 @@ function showView(name) {
 
 // ── Select view ──────────────────────────────────────────────
 
-/** Render the TEXTS array as clickable cards into #text-list. */
+const filterCategory   = document.getElementById('filter-category');
+const filterDifficulty = document.getElementById('filter-difficulty');
+const textListEmpty    = document.getElementById('text-list-empty');
+
+/** Fill the category filter with "All" plus every category found in TEXTS. */
+function populateCategoryFilter() {
+  filterCategory.innerHTML = '<option value="">All</option>';
+  TEXTS.forEach(function (t) {
+    const exists = Array.prototype.some.call(filterCategory.options, function (o) {
+      return o.value === t.category;
+    });
+    if (!exists) {
+      const opt = document.createElement('option');
+      opt.value = t.category;
+      opt.textContent = t.category;
+      filterCategory.appendChild(opt);
+    }
+  });
+}
+
+/** Render the TEXTS array (respecting the filters) as clickable cards into #text-list. */
 function renderTextList() {
   textList.innerHTML = '';
 
   const levels = ['Easy', 'Medium', 'Hard'];
+  const visible = TEXTS.filter(function (t) {
+    return (!filterCategory.value || t.category === filterCategory.value)
+      && (!filterDifficulty.value || t.difficulty === filterDifficulty.value);
+  });
+  textListEmpty.classList.toggle('hidden', visible.length > 0);
+
   const categories = [];
-  TEXTS.forEach(function (t) {
+  visible.forEach(function (t) {
     if (categories.indexOf(t.category) === -1) categories.push(t.category);
   });
 
@@ -95,12 +121,15 @@ function renderTextList() {
     heading.textContent = category;
     textList.appendChild(heading);
 
-    TEXTS
+    visible
       .filter(function (t) { return t.category === category; })
       .sort(function (a, b) { return levels.indexOf(a.difficulty) - levels.indexOf(b.difficulty); })
       .forEach(renderTextCard);
   });
 }
+
+filterCategory.addEventListener('change', renderTextList);
+filterDifficulty.addEventListener('change', renderTextList);
 
 /** Append one text card (button) to #text-list. @param {object} entry */
 function renderTextCard(entry) {
@@ -501,6 +530,7 @@ window.addEventListener('hashchange', function () {
 });
 
 // ── Init ──────────────────────────────────────────────────────
+populateCategoryFilter();
 renderTextList();
 const savedEntry = TEXTS.find(function (t) { return t.id === location.hash.slice(1); });
 if (savedEntry) {
