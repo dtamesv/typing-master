@@ -143,10 +143,12 @@ function renderTextCard(entry) {
     ? entry.text.slice(0, 80) + '…'
     : entry.text;
 
+  const wordCount = entry.text.trim().split(/\s+/).length;
+
   btn.innerHTML =
     '<span class="text-card-title">' + escHtml(entry.title) +
       ' <span class="badge badge-' + escHtml(entry.difficulty.toLowerCase()) + '">' + escHtml(entry.difficulty) + '</span></span>' +
-    '<span class="text-card-meta">' + entry.text.length + ' characters</span>' +
+    '<span class="text-card-meta">' + wordCount + ' words · ' + entry.text.length + ' characters</span>' +
     '<span class="text-card-preview">' + escHtml(preview) + '</span>';
 
   btn.addEventListener('click', function () {
