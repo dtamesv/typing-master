@@ -407,21 +407,24 @@ TEXTS.push(
   },
   {
     id: 'es-accents-drill',
-    category: 'Spanish',
+    category: 'Drills',
+    charset: 'Spanish',
     difficulty: 'Medium',
     title: 'Accents and Special Letters Drill',
     text: 'á é í ó ú ñ ü ¿ ¡ Á É Í Ó Ú Ñ Ü á é í ó ú ñ ü ¿ ¡ canción camión árbol información niño año mañana pingüino vergüenza ¿Qué? ¡Hola!',
   },
   {
     id: 'es-short-sentence',
-    category: 'Spanish',
+    category: 'Prose',
+    charset: 'Spanish',
     difficulty: 'Easy',
     title: 'Frase corta',
     text: 'El niño pequeño comió piña en la montaña mientras la cigüeña volaba sobre el río.',
   },
   {
     id: 'es-greetings',
-    category: 'Spanish',
+    category: 'Prose',
+    charset: 'Spanish',
     difficulty: 'Easy',
     title: 'Saludos y preguntas',
     text: [
@@ -434,14 +437,16 @@ TEXTS.push(
   },
   {
     id: 'es-paragraph',
-    category: 'Spanish',
+    category: 'Prose',
+    charset: 'Spanish',
     difficulty: 'Medium',
     title: 'Párrafo: La mecanografía',
     text: 'La mecanografía es una habilidad muy útil en la vida diaria. Con un poco de práctica, tus dedos aprenden dónde está cada tecla y ya no necesitas mirar el teclado. Al principio es normal cometer errores, sobre todo con las tildes y la letra ñ, pero la constancia te ayudará a escribir con más rapidez y precisión cada día.',
   },
   {
     id: 'es-email',
-    category: 'Spanish',
+    category: 'Prose',
+    charset: 'Spanish',
     difficulty: 'Medium',
     title: 'Correo: Reunión del equipo',
     text: [
@@ -465,7 +470,8 @@ TEXTS.push(
   },
   {
     id: 'es-story-pueblo',
-    category: 'Spanish',
+    category: 'Prose',
+    charset: 'Spanish',
     difficulty: 'Hard',
     title: 'Cuento: El tren de la mañana',
     text: [
@@ -476,7 +482,8 @@ TEXTS.push(
   },
   {
     id: 'es-code-js',
-    category: 'Spanish',
+    category: 'Code',
+    charset: 'Spanish',
     difficulty: 'Hard',
     title: 'JavaScript con comentarios en español',
     text: [

@@ -31,6 +31,7 @@ Edit `texts.js` and add an object to the `TEXTS` array:
   id: 'my-text',          // unique, no spaces
   category: 'Prose',      // group heading in the list (any name; new names create a new group)
   difficulty: 'Easy',     // 'Easy', 'Medium' or 'Hard'
+  // charset: 'Spanish',  // optional: texts needing special characters; omit for plain keyboard characters
   title: 'My Custom Text', // shown in the list
   text: 'The text you want to practise.',
 },
@@ -41,7 +42,7 @@ Notes:
 - Use plain characters you can type on your keyboard. Characters you can't type will block completion.
 - Use `\n` inside the string for a line break; the user presses Enter to type it.
 - Use `\t` for a tab character; the user presses Tab to type it. Indentation with spaces is typed as ordinary spaces.
-- Stick to characters on a standard keyboard (plain `-` rather than long dashes, straight quotes rather than curly ones). Accented letters such as `á ñ ü ¿ ¡` are fine for texts meant for a Spanish layout (see the "Spanish" category); save `texts.js` as UTF-8.
+- Stick to characters on a standard keyboard (plain `-` rather than long dashes, straight quotes rather than curly ones). Accented letters such as `á ñ ü ¿ ¡` are fine for texts meant for a Spanish layout: give those texts `charset: 'Spanish'`. It is a separate filter from the category, and new character set names get their own filter option automatically. Save `texts.js` as UTF-8.
 - Quote the string with `'...'` and escape any apostrophe as `\'`, or use `"..."` or backticks instead.
 
 ## Files

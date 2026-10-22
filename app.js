@@ -165,6 +165,7 @@ function showView(name) {
 // ── Select view ──────────────────────────────────────────────
 
 const filterCategory   = document.getElementById('filter-category');
+const filterCharset    = document.getElementById('filter-charset');
 const filterDifficulty = document.getElementById('filter-difficulty');
 const filterSize       = document.getElementById('filter-size');
 const textListEmpty    = document.getElementById('text-list-empty');
@@ -174,20 +175,31 @@ function sizeOf(length) {
   return length < 200 ? 'short' : length <= 600 ? 'medium' : 'long';
 }
 
-/** Fill the category filter with "All" plus every category found in TEXTS. */
-function populateCategoryFilter() {
-  filterCategory.innerHTML = '<option value="">All</option>';
+/** Character set of a text; texts without a `charset` use plain keyboard characters. */
+function charsetOf(t) {
+  return t.charset || 'Standard';
+}
+
+/** Fill a filter <select> with "All" plus every distinct value of `getValue` found in TEXTS. */
+function populateFilter(select, getValue) {
+  select.innerHTML = '<option value="">All</option>';
   TEXTS.forEach(function (t) {
-    const exists = Array.prototype.some.call(filterCategory.options, function (o) {
-      return o.value === t.category;
+    const value = getValue(t);
+    const exists = Array.prototype.some.call(select.options, function (o) {
+      return o.value === value;
     });
     if (!exists) {
       const opt = document.createElement('option');
-      opt.value = t.category;
-      opt.textContent = t.category;
-      filterCategory.appendChild(opt);
+      opt.value = value;
+      opt.textContent = value;
+      select.appendChild(opt);
     }
   });
+}
+
+function populateCategoryFilter() {
+  populateFilter(filterCategory, function (t) { return t.category; });
+  populateFilter(filterCharset, charsetOf);
 }
 
 /** Render the TEXTS array (respecting the filters) as clickable cards into #text-list. */
@@ -197,6 +209,7 @@ function renderTextList() {
   const levels = ['Easy', 'Medium', 'Hard'];
   const visible = TEXTS.filter(function (t) {
     return (!filterCategory.value || t.category === filterCategory.value)
+      && (!filterCharset.value || charsetOf(t) === filterCharset.value)
       && (!filterDifficulty.value || t.difficulty === filterDifficulty.value)
       && (!filterSize.value || sizeOf(t.text.length) === filterSize.value);
   });
@@ -221,6 +234,7 @@ function renderTextList() {
 }
 
 filterCategory.addEventListener('change', renderTextList);
+filterCharset.addEventListener('change', renderTextList);
 filterDifficulty.addEventListener('change', renderTextList);
 filterSize.addEventListener('change', renderTextList);
 
