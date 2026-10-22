@@ -211,9 +211,16 @@ function visibleChar(ch) {
 function setCharStatus(index, status, typedCh) {
   const span = charDisplay.children[index];
   const expected = state.currentText.text[index];
-  span.classList.remove('pending', 'correct', 'wrong', 'corrected');
+  span.classList.remove('pending', 'correct', 'wrong', 'corrected', 'wrong-tab');
   span.classList.add(status);
-  if (status === 'wrong') {
+  delete span.dataset.typed;
+  if (status === 'wrong' && expected === '\t') {
+    // Keep the real tab in the span (so its width is preserved) and draw the typed char over it via CSS
+    span.textContent = expected;
+    span.classList.add('wrong-tab');
+    span.dataset.typed = visibleChar(typedCh);
+    span.dataset.expected = visibleChar(expected);
+  } else if (status === 'wrong') {
     // Keep the line break when a newline was expected, so the layout doesn't shift
     span.textContent = visibleChar(typedCh) + (expected === '\n' ? '\n' : '');
     span.dataset.expected = visibleChar(expected);

@@ -227,6 +227,23 @@ body {
   text-decoration: none;
 }
 
+/* Wrong character typed where a Tab was expected: keep the tab's width, draw the typed char at its start */
+.char-display .ch.wrong-tab {
+  color: transparent;
+}
+
+.char-display .ch.wrong-tab::before {
+  content: attr(data-typed);
+  position: absolute;
+  left: 0;
+  color: var(--wrong);
+}
+
+.char-display .ch.wrong-tab::after {
+  left: 0;
+  transform: none;
+}
+
 /* Blinking caret on the current (next) character */
 .char-display .ch.current::before {
   content: '';
