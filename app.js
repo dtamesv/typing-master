@@ -21,6 +21,8 @@ const state = {
   firstAttemptCorrect: 0, // positions correct on first attempt
   errors: 0,              // wrong characters typed
   corrected: 0,           // positions that were wrong and later typed correctly
+  /** @type {Object.<string, number>} count of wrong keystrokes per expected character */
+  missedChars: {},
   startTime: null,        // ms timestamp of first keystroke
   timerId: null,          // setInterval id
   finished: false,
@@ -72,6 +74,8 @@ updateThemeToggleLabel();
 // Only completed sessions are recorded.
 
 const STATS_KEY = 'typingStats';
+/** Maximum number of sessions kept per character in the sliding history. */
+const CHAR_HISTORY_SESSIONS = 20;
 
 function newBucket() {
   return { runs: 0, bestWpm: 0, totalWpm: 0, bestAccuracy: 0, totalAccuracy: 0, bestTime: 0 };
@@ -98,10 +102,41 @@ function addToBucket(b, m) {
   b.bestTime = !b.bestTime ? m.elapsed : Math.min(b.bestTime, m.elapsed);
 }
 
+/**
+ * Push one session's miss data into the sliding char history.
+ * Every character that appeared in the practiced text gets an entry — 0 if no misses,
+ * so good sessions actively pull the average down.
+ * When the history exceeds CHAR_HISTORY_SESSIONS, the oldest entry is first collapsed
+ * into an average of all entries up to that point, preserving the long-term signal.
+ * @param {Object.<string, number[]>} charHistory  the stored history map (mutated in place)
+ * @param {string} practicedText                   the full text that was typed
+ * @param {Object.<string, number>} sessionMisses  misses recorded this session
+ */
+function pushCharHistory(charHistory, practicedText, sessionMisses) {
+  // Collect unique chars that were part of this session's text
+  const chars = {};
+  for (let i = 0; i < practicedText.length; i++) chars[practicedText[i]] = true;
+
+  Object.keys(chars).forEach(function (ch) {
+    if (!charHistory[ch]) charHistory[ch] = [];
+    const hist = charHistory[ch];
+    hist.push(sessionMisses[ch] || 0);
+    if (hist.length > CHAR_HISTORY_SESSIONS) {
+      // Replace the two oldest entries with their average, keeping the window length at the limit.
+      // This way very old data decays gracefully instead of being hard-dropped.
+      const condensed = (hist[0] + hist[1]) / 2;
+      hist.splice(0, 2, condensed);
+    }
+  });
+}
+
 /** Add a finished session to the global stats, and to the per-text stats unless the text is random. */
 function recordRun(entry, metrics) {
   const stats = loadStats();
   addToBucket(stats.global, metrics);
+  // Update the sliding char history on the global bucket
+  if (!stats.global.charHistory) stats.global.charHistory = {};
+  pushCharHistory(stats.global.charHistory, metrics.practicedText, metrics.missedChars);
   if (!entry.random) {
     if (!stats.texts[entry.id]) stats.texts[entry.id] = newBucket();
     addToBucket(stats.texts[entry.id], metrics);
@@ -113,6 +148,21 @@ function recordRun(entry, metrics) {
 /** Average of a bucket total, rounded; 0 when there are no runs. */
 function bucketAvg(b, field) {
   return b.runs ? Math.round(b[field] / b.runs) : 0;
+}
+
+/**
+ * Derive a flat { ch: avgMisses } map from the sliding char history, for use by the generators.
+ * @param {Object.<string, number[]>} charHistory
+ * @returns {Object.<string, number>}
+ */
+function charHistoryToWeights(charHistory) {
+  const weights = {};
+  Object.keys(charHistory).forEach(function (ch) {
+    const hist = charHistory[ch];
+    if (!hist.length) return;
+    weights[ch] = hist.reduce(function (s, v) { return s + v; }, 0) / hist.length;
+  });
+  return weights;
 }
 
 /** One table row for a stats bucket. Best accuracy and total time are only meaningful per text, so global rows skip them. */
@@ -347,12 +397,13 @@ FILTER_PARAMS.forEach(function (pair) {
 
 // ── Random text card ─────────────────────────────────────────
 
-const randomSize    = document.getElementById('random-size');
-const randomCharset = document.getElementById('random-charset');
-const randomSymbols = document.getElementById('random-symbols');
-const randomNumbers = document.getElementById('random-numbers');
-const randomUpper   = document.getElementById('random-uppercase');
-const btnRandom     = document.getElementById('btn-random');
+const randomSize      = document.getElementById('random-size');
+const randomCharset   = document.getElementById('random-charset');
+const randomSymbols   = document.getElementById('random-symbols');
+const randomNumbers   = document.getElementById('random-numbers');
+const randomUpper     = document.getElementById('random-uppercase');
+const randomWeakChars = document.getElementById('random-weak-chars');
+const btnRandom       = document.getElementById('btn-random');
 
 const RANDOM_LENGTHS = { short: 150, medium: 400, long: 800 };
 
@@ -364,6 +415,28 @@ function pick(list) {
   return list[Math.floor(Math.random() * list.length)];
 }
 
+/**
+ * Weighted random pick: each item's weight is its score from `missedChars`.
+ * Falls back to a uniform pick when all scores are 0.
+ * @param {string[]} words
+ * @param {Object.<string, number>} missedChars
+ */
+function pickWeighted(words, missedChars) {
+  const weights = words.map(function (w) {
+    return w.split('').reduce(function (sum, ch) {
+      return sum + (missedChars[ch] || 0);
+    }, 0);
+  });
+  const total = weights.reduce(function (a, b) { return a + b; }, 0);
+  if (total === 0) return pick(words); // no miss data yet — uniform fallback
+  let r = Math.random() * total;
+  for (let i = 0; i < words.length; i++) {
+    r -= weights[i];
+    if (r <= 0) return words[i];
+  }
+  return words[words.length - 1];
+}
+
 /** Randomly capitalise a word: ~1 in 6 words, half of them only the first letter, half the whole word. */
 function randomCase(word) {
   if (Math.random() >= 0.17) return word;
@@ -373,34 +446,85 @@ function randomCase(word) {
 }
 
 /**
+ * Return a miss-based weight for a single character (1 = baseline, higher = more missed).
+ * @param {string} ch
+ * @param {Object.<string, number>} missedChars
+ */
+function missWeight(ch, missedChars) {
+  return 1 + (missedChars[ch] || 0);
+}
+
+/**
+ * Weighted pick from a list of single characters using the miss map.
+ * @param {string[]} chars
+ * @param {Object.<string, number>} missedChars
+ */
+function pickWeightedSymbol(chars, missedChars) {
+  const weights = chars.map(function (ch) { return missWeight(ch, missedChars); });
+  const total = weights.reduce(function (a, b) { return a + b; }, 0);
+  let r = Math.random() * total;
+  for (let i = 0; i < chars.length; i++) {
+    r -= weights[i];
+    if (r <= 0) return chars[i];
+  }
+  return chars[chars.length - 1];
+}
+
+/**
  * Build one random sentence from a word set (see words.js).
- * @param {{ symbols: boolean, numbers: boolean, uppercase: boolean }} opts
+ * @param {{ symbols: boolean, numbers: boolean, uppercase: boolean, missedChars?: Object.<string,number> }} opts
  */
 function randomSentence(set, opts) {
   const withSymbols = opts.symbols;
+  const missedChars = opts.missedChars || {};
+  const hasMissData = Object.keys(missedChars).length > 0;
+
+  // Boost number probability (base 15%) up to 40% when digits are heavily missed
+  const digitMisses = '0123456789'.split('').reduce(function (s, d) { return s + (missedChars[d] || 0); }, 0);
+  const totalMisses = Object.keys(missedChars).reduce(function (s, k) { return s + missedChars[k]; }, 0);
+  const numberChance = opts.numbers
+    ? 0.15 + 0.25 * (totalMisses ? digitMisses / totalMisses : 0)
+    : 0;
+
   const count = randomInt(5, 12);
   const tokens = [];
 
   for (let i = 0; i < count; i++) {
-    let token = opts.numbers && Math.random() < 0.15 ? String(randomInt(1, 9999)) : pick(set.words);
+    let token = numberChance && Math.random() < numberChance
+      ? String(randomInt(1, 9999))
+      : (hasMissData ? pickWeighted(set.words, missedChars) : pick(set.words));
     const isNumber = /^\d+$/.test(token);
     if (opts.uppercase && !isNumber) token = randomCase(token);
 
     if (withSymbols) {
       if (i === 0) token = token.charAt(0).toUpperCase() + token.slice(1);
       const r = Math.random();
-      if (r < 0.06) token = '(' + token + ')';
-      else if (r < 0.10) token = '"' + token + '"';
-      else if (r < 0.14 && i < count - 1 && !isNumber) token = token + '-' + pick(set.words);
-      else if (r < 0.17 && isNumber) token = r < 0.155 ? '$' + token : token + '%';
-      if (i < count - 1 && Math.random() < 0.12) token += pick([',', ';', ':']);
+      // Boost each symbol branch probability by its miss weight relative to baseline
+      const w = function (ch) { return missWeight(ch, missedChars); };
+      const parenW  = w('(') + w(')');
+      const quoteW  = w('"');
+      const dashW   = w('-');
+      const dollarW = w('$');
+      const pctW    = w('%');
+      const base = parenW + quoteW + dashW + dollarW + pctW;
+      // Normalise thresholds so they sum to the same 0.17 range but are weighted by miss counts
+      const t1 = 0.17 * (parenW / base);
+      const t2 = t1 + 0.17 * (quoteW / base);
+      const t3 = t2 + 0.17 * (dashW / base);
+      const t4 = t3 + 0.17 * ((dollarW + pctW) / base);
+      if (r < t1) token = '(' + token + ')';
+      else if (r < t2) token = '"' + token + '"';
+      else if (r < t3 && i < count - 1 && !isNumber) token = token + '-' + pick(set.words);
+      else if (r < t4 && isNumber) token = dollarW >= pctW ? '$' + token : token + '%';
+      if (i < count - 1 && Math.random() < 0.12)
+        token += pickWeightedSymbol([',', ';', ':'], missedChars);
     }
     tokens.push(token);
   }
 
   let sentence = tokens.join(' ');
   if (withSymbols) {
-    const ending = pick(['.', '.', '.', '!', '?']);
+    const ending = pickWeightedSymbol(['.', '.', '.', '!', '?'], missedChars);
     const wrapper = set.wrappers.find(function (w) { return w[1] === ending; });
     sentence = wrapper ? wrapper[0] + sentence + ending : sentence + ending;
   }
@@ -408,13 +532,13 @@ function randomSentence(set, opts) {
 }
 
 /** Generate a random text of roughly the requested size. With every option off it is plain lowercase words. */
-function generateRandomText(size, charset, opts) {
+function generateRandomText(size, charset, opts, missedChars) {
   const set = WORD_SETS[charset] || WORD_SETS.Standard;
   const target = RANDOM_LENGTHS[size];
   const sentences = [];
   let length = 0;
   while (length < target) {
-    const sentence = randomSentence(set, opts);
+    const sentence = randomSentence(set, Object.assign({}, opts, { missedChars: missedChars || {} }));
     sentences.push(sentence);
     length += sentence.length + 1;
   }
@@ -429,11 +553,15 @@ Object.keys(WORD_SETS).forEach(function (name) {
 });
 
 btnRandom.addEventListener('click', function () {
+  const charHistory = loadStats().global.charHistory || {};
+  const missedChars = randomWeakChars.checked
+    ? charHistoryToWeights(charHistory)
+    : {};
   const text = generateRandomText(randomSize.value, randomCharset.value, {
     symbols: randomSymbols.checked,
     numbers: randomNumbers.checked,
     uppercase: randomUpper.checked,
-  });
+  }, missedChars);
   startPractice(randomEntry(text, 'Random text (' + randomSize.value + ', ' + randomCharset.value + ')'));
 });
 
@@ -498,6 +626,7 @@ function startPractice(entry, fromUrl) {
   state.firstAttemptCorrect = 0;
   state.errors              = 0;
   state.corrected           = 0;
+  state.missedChars         = {};
   state.startTime           = null;
   state.finished            = false;
 
@@ -652,6 +781,9 @@ function typeChar(ch) {
   } else {
     state.hadError[i] = true;
     state.errors++;
+    // Track which expected character was missed (keyed by the expected char)
+    const expected = text[i];
+    state.missedChars[expected] = (state.missedChars[expected] || 0) + 1;
     setCharStatus(i, 'wrong', ch);
   }
   state.attempted[i] = true;
@@ -736,6 +868,8 @@ function finishPractice() {
     elapsed: elapsed,
     errors: state.errors,
     corrected: state.corrected,
+    missedChars: state.missedChars,
+    practicedText: text,
   });
 }
 
