@@ -788,12 +788,12 @@ typingInput.addEventListener('compositionend', flushTypingInput);
  *            elapsed: number, errors: number, corrected: number }} metrics
  */
 function showResults(metrics) {
-  resultsStats.innerHTML = buildStatCard('Net WPM',         metrics.netWpm)
-    + buildStatCard('Raw WPM',         metrics.rawWpm)
-    + buildStatCard('Accuracy',        metrics.accuracy + '%')
-    + buildStatCard('Time',            formatTime(metrics.elapsed))
-    + buildStatCard('Errors',          metrics.errors)
-    + buildStatCard('Corrected errors', metrics.corrected);
+  resultsStats.innerHTML = buildStatCard('Net WPM',          metrics.netWpm,        'Words per minute after subtracting uncorrected errors. The standard measure of typing speed.')
+    + buildStatCard('Raw WPM',         metrics.rawWpm,       'Total keystrokes per minute with no error penalty. Shows your raw speed before accounting for mistakes.')
+    + buildStatCard('Accuracy',        metrics.accuracy + '%', 'Percentage of characters typed correctly on the first attempt.')
+    + buildStatCard('Time',            formatTime(metrics.elapsed), 'Total time from your first keystroke to the last character.')
+    + buildStatCard('Errors',          metrics.errors,       'Number of characters typed incorrectly (each wrong keystroke counts, even if later corrected).')
+    + buildStatCard('Corrected errors', metrics.corrected,   'Errors you went back and fixed with Backspace before finishing.');
 
   renderHistory(recordRun(state.currentText, metrics), state.currentText);
 
@@ -808,8 +808,8 @@ function showResults(metrics) {
  * @param {string | number} value
  * @returns {string}
  */
-function buildStatCard(label, value) {
-  return '<div class="results-stat-card">' +
+function buildStatCard(label, value, tooltip) {
+  return '<div class="results-stat-card"' + (tooltip ? ' data-tooltip="' + escHtml(tooltip) + '"' : '') + '>' +
            '<dt>' + escHtml(label) + '</dt>' +
            '<dd>' + escHtml(String(value)) + '</dd>' +
          '</div>';

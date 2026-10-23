@@ -485,6 +485,28 @@ body {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 1rem 1.25rem;
+  position: relative;
+}
+
+.results-stat-card[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--text);
+  color: var(--bg);
+  font-size: 0.78rem;
+  font-family: var(--font-ui);
+  font-weight: 400;
+  line-height: 1.4;
+  padding: 0.4rem 0.65rem;
+  border-radius: 6px;
+  width: 14rem;
+  white-space: normal;
+  text-align: center;
+  pointer-events: none;
+  z-index: 10;
 }
 
 .results-actions {
