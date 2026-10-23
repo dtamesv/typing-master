@@ -95,7 +95,7 @@ function addToBucket(b, m) {
   b.totalWpm += m.netWpm;
   b.bestAccuracy = Math.max(b.bestAccuracy, m.accuracy);
   b.totalAccuracy += m.accuracy;
-  b.bestTime = b.bestTime === 0 ? m.elapsed : Math.min(b.bestTime, m.elapsed);
+  b.bestTime = !b.bestTime ? m.elapsed : Math.min(b.bestTime, m.elapsed);
 }
 
 /** Add a finished session to the global stats, and to the per-text stats unless the text is random. */
@@ -449,7 +449,9 @@ function renderTextCard(entry) {
   const saved = loadStats().texts[entry.id];
   const cardStats = saved && saved.runs
     ? '<span class="text-card-stats">Best ' + saved.bestWpm + ' WPM · avg accuracy ' +
-        bucketAvg(saved, 'totalAccuracy') + '% · ' + saved.runs + (saved.runs === 1 ? ' run' : ' runs') + '</span>'
+        bucketAvg(saved, 'totalAccuracy') + '%' +
+        (saved.bestTime ? ' · ' + formatTime(saved.bestTime) : '') +
+        ' · ' + saved.runs + (saved.runs === 1 ? ' run' : ' runs') + '</span>'
     : '';
 
   const size = sizeOf(entry.text.length);
