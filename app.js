@@ -234,6 +234,7 @@ const filterCategory   = document.getElementById('filter-category');
 const filterCharset    = document.getElementById('filter-charset');
 const filterDifficulty = document.getElementById('filter-difficulty');
 const filterSize       = document.getElementById('filter-size');
+const filterTried      = document.getElementById('filter-tried');
 const textListEmpty    = document.getElementById('text-list-empty');
 
 /** @param {number} length @returns {'short' | 'medium' | 'long'} */
@@ -273,11 +274,14 @@ function renderTextList() {
   textList.innerHTML = '';
 
   const levels = ['Easy', 'Medium', 'Hard'];
+  const savedTexts = loadStats().texts;
   const visible = TEXTS.filter(function (t) {
+    const tried = !!(savedTexts[t.id] && savedTexts[t.id].runs);
     return (!filterCategory.value || t.category === filterCategory.value)
       && (!filterCharset.value || charsetOf(t) === filterCharset.value)
       && (!filterDifficulty.value || t.difficulty === filterDifficulty.value)
-      && (!filterSize.value || sizeOf(t.text.length) === filterSize.value);
+      && (!filterSize.value || sizeOf(t.text.length) === filterSize.value)
+      && (!filterTried.value || (filterTried.value === 'yes') === tried);
   });
   textListEmpty.classList.toggle('hidden', visible.length > 0);
 
@@ -305,6 +309,7 @@ const FILTER_PARAMS = [
   ['charset',    filterCharset],
   ['difficulty', filterDifficulty],
   ['size',       filterSize],
+  ['tried',      filterTried],
 ];
 
 /** Select the filter values given in the URL; unknown values are ignored. */
