@@ -74,7 +74,7 @@ updateThemeToggleLabel();
 const STATS_KEY = 'typingStats';
 
 function newBucket() {
-  return { runs: 0, bestWpm: 0, totalWpm: 0, bestAccuracy: 0, totalAccuracy: 0, totalTime: 0 };
+  return { runs: 0, bestWpm: 0, totalWpm: 0, bestAccuracy: 0, totalAccuracy: 0, bestTime: 0 };
 }
 
 function loadStats() {
@@ -95,7 +95,7 @@ function addToBucket(b, m) {
   b.totalWpm += m.netWpm;
   b.bestAccuracy = Math.max(b.bestAccuracy, m.accuracy);
   b.totalAccuracy += m.accuracy;
-  b.totalTime += m.elapsed;
+  b.bestTime = b.bestTime === 0 ? m.elapsed : Math.min(b.bestTime, m.elapsed);
 }
 
 /** Add a finished session to the global stats, and to the per-text stats unless the text is random. */
@@ -123,7 +123,7 @@ function statsRow(label, b, perText) {
     '<td>' + bucketAvg(b, 'totalWpm') + '</td>' +
     '<td>' + (perText ? b.bestAccuracy + '%' : '-') + '</td>' +
     '<td>' + bucketAvg(b, 'totalAccuracy') + '%</td>' +
-    '<td>' + (perText ? formatTime(b.totalTime) : '-') + '</td></tr>';
+    '<td>' + (perText ? (b.bestTime ? formatTime(b.bestTime) : '-') : '-') + '</td></tr>';
 }
 
 /** Table comparing this text's history with the global history (random texts only get the global row). */
@@ -132,7 +132,7 @@ function renderHistory(stats, entry) {
     '<h3>History</h3>' +
     '<table class="stats-table"><thead><tr>' +
       '<th></th><th>Runs</th><th>Best WPM</th><th>Avg WPM</th>' +
-      '<th>Best acc.</th><th>Avg acc.</th><th>Total time</th>' +
+      '<th>Best acc.</th><th>Avg acc.</th><th>Best time</th>' +
     '</tr></thead><tbody>' +
       (entry.random ? '' : statsRow('This text', stats.texts[entry.id] || newBucket(), true)) +
       statsRow('All texts', stats.global, false) +
