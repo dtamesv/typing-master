@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- key cap background -->
+  <rect x="2" y="2" width="28" height="28" rx="6" fill="#0d1117"/>
+  <!-- cursor bar -->
+  <rect x="9" y="9" width="3" height="14" rx="1.5" fill="#58a6ff"/>
+  <!-- underscore / text line -->
+  <rect x="14" y="19" width="9" height="2.5" rx="1.25" fill="#e6edf3" opacity="0.55"/>
+  <!-- top text line -->
+  <rect x="14" y="9" width="9" height="2.5" rx="1.25" fill="#e6edf3" opacity="0.55"/>
+  <!-- middle text line -->
+  <rect x="14" y="14" width="6" height="2.5" rx="1.25" fill="#e6edf3" opacity="0.55"/>
+</svg>
