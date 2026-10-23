@@ -529,8 +529,9 @@ function renderCharSpans(text) {
     const span = document.createElement('span');
     span.className = 'ch pending' + (i === 0 ? ' current' : '');
     span.dataset.index = String(i);
-    // Regular spaces are preserved by `white-space: pre-wrap` and allow line wrapping
-    span.textContent = text[i];
+    // Newlines get the ↵ symbol so they are always visible; the real \n follows to preserve layout.
+    // Regular spaces are preserved by `white-space: pre-wrap` and allow line wrapping.
+    span.textContent = text[i] === '\n' ? '\u21B5\n' : text[i];
     charDisplay.appendChild(span);
   }
 }
@@ -615,7 +616,8 @@ function setCharStatus(index, status, typedCh) {
     span.textContent = visibleChar(typedCh) + (expected === '\n' ? '\n' : '');
     span.dataset.expected = visibleChar(expected);
   } else {
-    span.textContent = expected;
+    // Newlines always show the ↵ marker so they remain visible when correct/pending
+    span.textContent = expected === '\n' ? '\u21B5\n' : expected;
     delete span.dataset.expected;
   }
 }
