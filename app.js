@@ -325,14 +325,23 @@ function renderTextList() {
 
   const levels = ['Easy', 'Medium', 'Hard'];
   const savedTexts = loadStats().texts;
-  const visible = TEXTS.filter(function (t) {
-    const tried = !!(savedTexts[t.id] && savedTexts[t.id].runs);
+  const runsOf = function (t) { return (savedTexts[t.id] && savedTexts[t.id].runs) || 0; };
+  const topN = filterTried.value === 'least' || filterTried.value === 'most';
+  let visible = TEXTS.filter(function (t) {
     return (!filterCategory.value || t.category === filterCategory.value)
       && (!filterCharset.value || charsetOf(t) === filterCharset.value)
       && (!filterDifficulty.value || t.difficulty === filterDifficulty.value)
       && (!filterSize.value || sizeOf(t.text.length) === filterSize.value)
-      && (!filterTried.value || (filterTried.value === 'yes') === tried);
+      && (!filterTried.value || topN || (filterTried.value === 'yes') === (runsOf(t) > 0));
   });
+  if (topN) {
+    // Rank the texts matching the other filters by number of runs and keep the first 10.
+    const sign = filterTried.value === 'least' ? 1 : -1;
+    visible = visible
+      .filter(function (t) { return sign === 1 || runsOf(t) > 0; })
+      .sort(function (a, b) { return sign * (runsOf(a) - runsOf(b)); })
+      .slice(0, 10);
+  }
   textListEmpty.classList.toggle('hidden', visible.length > 0);
 
   const categories = [];
