@@ -97,9 +97,12 @@ function addToBucket(b, m) {
   b.runs++;
   b.bestWpm = Math.max(b.bestWpm, m.netWpm);
   b.totalWpm += m.netWpm;
-  b.bestAccuracy = Math.max(b.bestAccuracy, m.accuracy);
+  // The best time is only updated by a run that matches or beats the bucket's best accuracy.
+  if (m.accuracy >= b.bestAccuracy) {
+    b.bestTime = !b.bestTime || m.accuracy > b.bestAccuracy ? m.elapsed : Math.min(b.bestTime, m.elapsed);
+    b.bestAccuracy = m.accuracy;
+  }
   b.totalAccuracy += m.accuracy;
-  b.bestTime = !b.bestTime ? m.elapsed : Math.min(b.bestTime, m.elapsed);
 }
 
 /**
