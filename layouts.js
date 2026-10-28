@@ -72,7 +72,7 @@ function buildLayoutMap(keyDefs) {
         finger: finger,
         label: alt,
         shift: false,
-        modifierFinger: 'rp',
+        modifierFinger: 'rt',
         modifierLabel: 'AltGr',
       };
     }

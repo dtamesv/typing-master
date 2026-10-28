@@ -20,7 +20,10 @@
 </head>
 <body>
 
-  <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle light/dark mode"></button>
+  <div class="top-controls">
+    <button id="theme-toggle" class="top-btn theme-toggle" type="button" aria-label="Toggle light/dark mode"></button>
+    <button id="guide-toggle" class="top-btn guide-toggle" type="button" aria-label="Toggle layout guide"></button>
+  </div>
 
   <!-- ═══════════════════ SELECT VIEW ═══════════════════ -->
   <section id="select-view" class="view">
@@ -105,7 +108,7 @@
     <!-- Hand typing guide (visible while text is not finished) -->
     <div id="hand-guide" class="hand-guide">
       <div class="hand-guide-header">
-        <div class="hand-guide-info">
+        <div id="hand-guide-info" class="hand-guide-info">
           <span class="guide-tag">Next key</span>
           <span id="guide-key-display" class="guide-key-display">—</span>
           <span id="guide-finger-desc" class="guide-finger-desc"></span>

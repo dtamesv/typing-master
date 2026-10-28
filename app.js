@@ -37,6 +37,7 @@ const handGuide            = document.getElementById('hand-guide');
 const guideKeyDisplay      = document.getElementById('guide-key-display');
 const guideFingerDesc      = document.getElementById('guide-finger-desc');
 const keyboardLayoutSelect = document.getElementById('keyboard-layout-select');
+const guideToggle          = document.getElementById('guide-toggle');
 
 const textList         = document.getElementById('text-list');
 const practiceTitle    = document.getElementById('practice-title');
@@ -653,8 +654,13 @@ function startPractice(entry, fromUrl) {
   renderCharSpans(entry.text);
   resultsPanel.classList.add('hidden');
   practiceHint.classList.remove('hidden');
-  handGuide.classList.remove('hidden');
-  updateHandGuide();
+  if (keyboardLayoutSelect) {
+    keyboardLayoutSelect.value = getSavedLayout();
+  }
+  applyGuideVisibility();
+  if (getSavedGuideEnabled()) {
+    updateHandGuide();
+  }
 
   showView('practice');
   if (!fromUrl) pushPracticeUrl(entry); // remembered across reloads
@@ -1021,6 +1027,41 @@ btnBackResults.addEventListener('click', goToList);
 
 // ── Hand Guide Logic ──────────────────────────────────────────
 const LAYOUT_KEY = 'typingLayout';
+const GUIDE_ENABLED_KEY = 'typingGuideEnabled';
+
+function getSavedGuideEnabled() {
+  try {
+    const saved = localStorage.getItem(GUIDE_ENABLED_KEY);
+    if (saved !== null) return saved === 'true';
+  } catch (e) { /* storage unavailable */ }
+  return true;
+}
+
+function saveGuideEnabled(enabled) {
+  try {
+    localStorage.setItem(GUIDE_ENABLED_KEY, String(enabled));
+  } catch (e) { /* storage unavailable */ }
+}
+
+function updateGuideToggleLabel() {
+  if (!guideToggle) return;
+  const enabled = getSavedGuideEnabled();
+  guideToggle.innerHTML = 'Guide: ' + (enabled
+    ? '<span class="status-on">ON</span>'
+    : '<span class="status-off">OFF</span>');
+}
+
+function applyGuideVisibility() {
+  updateGuideToggleLabel();
+  const enabled = getSavedGuideEnabled();
+  if (handGuide) {
+    if (!enabled || state.finished || !state.currentText) {
+      handGuide.classList.add('hidden');
+    } else {
+      handGuide.classList.remove('hidden');
+    }
+  }
+}
 
 function getSavedLayout() {
   try {
@@ -1077,6 +1118,11 @@ function updateHandGuide() {
     return;
   }
 
+  if (!getSavedGuideEnabled()) {
+    clearHandGuideHighlights();
+    return;
+  }
+
   const targetChar = state.currentText.text[state.typed.length];
   const layoutId = (keyboardLayoutSelect && keyboardLayoutSelect.value) ? keyboardLayoutSelect.value : getSavedLayout();
   const guide = typeof getKeyGuide === 'function' ? getKeyGuide(targetChar, layoutId) : null;
@@ -1117,12 +1163,40 @@ if (keyboardLayoutSelect) {
   });
 }
 
+if (guideToggle) {
+  guideToggle.addEventListener('click', function () {
+    const next = !getSavedGuideEnabled();
+    saveGuideEnabled(next);
+    applyGuideVisibility();
+    if (next && state.currentText && !state.finished) {
+      updateHandGuide();
+    } else {
+      clearHandGuideHighlights();
+    }
+    if (!practiceView.classList.contains('hidden') && !state.finished) {
+      typingInput.focus();
+    }
+  });
+}
+
+// Sync layout and toggle changes across tabs / windows
+window.addEventListener('storage', function (e) {
+  if (e.key === LAYOUT_KEY) {
+    if (keyboardLayoutSelect) keyboardLayoutSelect.value = getSavedLayout();
+    updateHandGuide();
+  } else if (e.key === GUIDE_ENABLED_KEY) {
+    applyGuideVisibility();
+    updateHandGuide();
+  }
+});
+
 // Keep the view in sync with the URL on browser Back/Forward (also fires for manual #hash edits)
 window.addEventListener('popstate', syncViewFromUrl);
 
 // ── Init ──────────────────────────────────────────────────────
 populateCategoryFilter();
 populateLayoutSelect();
+applyGuideVisibility();
 applyFiltersFromUrl();
 renderTextList();
 syncViewFromUrl();
