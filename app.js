@@ -33,6 +33,10 @@ const selectView       = document.getElementById('select-view');
 const practiceView     = document.getElementById('practice-view');
 const resultsPanel     = document.getElementById('results-panel');
 const practiceHint     = document.getElementById('practice-hint');
+const handGuide            = document.getElementById('hand-guide');
+const guideKeyDisplay      = document.getElementById('guide-key-display');
+const guideFingerDesc      = document.getElementById('guide-finger-desc');
+const keyboardLayoutSelect = document.getElementById('keyboard-layout-select');
 
 const textList         = document.getElementById('text-list');
 const practiceTitle    = document.getElementById('practice-title');
@@ -649,6 +653,8 @@ function startPractice(entry, fromUrl) {
   renderCharSpans(entry.text);
   resultsPanel.classList.add('hidden');
   practiceHint.classList.remove('hidden');
+  handGuide.classList.remove('hidden');
+  updateHandGuide();
 
   showView('practice');
   if (!fromUrl) pushPracticeUrl(entry); // remembered across reloads
@@ -803,7 +809,11 @@ function typeChar(ch) {
   updateCaret(i + 1);
   practiceProgress.textContent = state.typed.length + ' / ' + text.length;
 
-  if (state.typed.length === text.length) finishPractice();
+  if (state.typed.length === text.length) {
+    finishPractice();
+  } else {
+    updateHandGuide();
+  }
 }
 
 /** Handle Backspace: delete the last typed character (no-op at position 0). */
@@ -814,6 +824,7 @@ function deleteChar() {
   setCharStatus(i, 'pending');
   updateCaret(i);
   practiceProgress.textContent = i + ' / ' + state.currentText.text.length;
+  updateHandGuide();
 }
 
 // ── Metrics (pure functions: no DOM / state access) ───────────
@@ -869,6 +880,8 @@ function calcAccuracy(firstAttemptCorrect, totalChars) {
 function finishPractice() {
   stopTimer();
   state.finished = true;
+  handGuide.classList.add('hidden');
+  clearHandGuideHighlights();
 
   const text = state.currentText.text;
   const elapsed = Date.now() - state.startTime;
@@ -950,6 +963,7 @@ function showResults(metrics) {
 
   resultsPanel.classList.remove('hidden');
   practiceHint.classList.add('hidden');
+  handGuide.classList.add('hidden');
   resultsPanel.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 
@@ -1005,11 +1019,110 @@ btnRetry.addEventListener('click', function () {
 
 btnBackResults.addEventListener('click', goToList);
 
+// ── Hand Guide Logic ──────────────────────────────────────────
+const LAYOUT_KEY = 'typingLayout';
+
+function getSavedLayout() {
+  try {
+    const saved = localStorage.getItem(LAYOUT_KEY);
+    if (saved && KEYBOARD_LAYOUTS && KEYBOARD_LAYOUTS[saved]) return saved;
+  } catch (e) { /* storage unavailable */ }
+  return 'qwerty';
+}
+
+function saveLayout(id) {
+  try { localStorage.setItem(LAYOUT_KEY, id); } catch (e) { /* storage unavailable */ }
+}
+
+function populateLayoutSelect() {
+  if (!keyboardLayoutSelect || typeof KEYBOARD_LAYOUTS === 'undefined') return;
+  keyboardLayoutSelect.innerHTML = '';
+  Object.keys(KEYBOARD_LAYOUTS).forEach(function (id) {
+    const opt = document.createElement('option');
+    opt.value = id;
+    opt.textContent = KEYBOARD_LAYOUTS[id].name;
+    keyboardLayoutSelect.appendChild(opt);
+  });
+  keyboardLayoutSelect.value = getSavedLayout();
+}
+
+function clearHandGuideHighlights() {
+  const allFingers = document.querySelectorAll('.finger-group');
+  allFingers.forEach(function (el) {
+    el.classList.remove('active', 'active-modifier');
+    const badgeText = el.querySelector('.badge-text');
+    if (badgeText) badgeText.textContent = '';
+  });
+}
+
+function setFingerBadge(fingerEl, label) {
+  const badgeText = fingerEl.querySelector('.badge-text');
+  const badgeBg = fingerEl.querySelector('.badge-bg');
+  if (badgeText) {
+    badgeText.textContent = label;
+  }
+  if (badgeBg) {
+    const textLen = (label || '').length;
+    const width = Math.max(28, textLen * 7.5 + 12);
+    badgeBg.setAttribute('width', String(width));
+    badgeBg.setAttribute('x', String(-width / 2));
+  }
+}
+
+function updateHandGuide() {
+  if (!handGuide || !state.currentText || state.finished || state.typed.length >= state.currentText.text.length) {
+    clearHandGuideHighlights();
+    if (guideKeyDisplay) guideKeyDisplay.textContent = '—';
+    if (guideFingerDesc) guideFingerDesc.textContent = '';
+    return;
+  }
+
+  const targetChar = state.currentText.text[state.typed.length];
+  const layoutId = (keyboardLayoutSelect && keyboardLayoutSelect.value) ? keyboardLayoutSelect.value : getSavedLayout();
+  const guide = typeof getKeyGuide === 'function' ? getKeyGuide(targetChar, layoutId) : null;
+
+  clearHandGuideHighlights();
+
+  if (!guide) {
+    if (guideKeyDisplay) guideKeyDisplay.textContent = visibleChar(targetChar);
+    if (guideFingerDesc) guideFingerDesc.textContent = '';
+    return;
+  }
+
+  if (guideKeyDisplay) guideKeyDisplay.textContent = visibleChar(targetChar);
+  if (guideFingerDesc) guideFingerDesc.textContent = guide.description;
+
+  // Highlight primary finger
+  const fingerEl = document.getElementById('finger-' + guide.finger);
+  if (fingerEl) {
+    fingerEl.classList.add('active');
+    setFingerBadge(fingerEl, guide.label);
+  }
+
+  // Highlight modifier finger (e.g. Shift)
+  if (guide.modifierFinger) {
+    const modFingerEl = document.getElementById('finger-' + guide.modifierFinger);
+    if (modFingerEl) {
+      modFingerEl.classList.add('active-modifier');
+      setFingerBadge(modFingerEl, guide.modifierLabel || 'Shift');
+    }
+  }
+}
+
+if (keyboardLayoutSelect) {
+  keyboardLayoutSelect.addEventListener('change', function () {
+    saveLayout(keyboardLayoutSelect.value);
+    updateHandGuide();
+    typingInput.focus();
+  });
+}
+
 // Keep the view in sync with the URL on browser Back/Forward (also fires for manual #hash edits)
 window.addEventListener('popstate', syncViewFromUrl);
 
 // ── Init ──────────────────────────────────────────────────────
 populateCategoryFilter();
+populateLayoutSelect();
 applyFiltersFromUrl();
 renderTextList();
 syncViewFromUrl();

@@ -23,6 +23,7 @@
   --size-short:  #0f7c8a;
   --size-medium: #7c5cd8;
   --size-long:   #b3489b;
+  --badge-text:  #ffffff;
 
   --font-mono:   "Courier New", Courier, monospace;
   --font-ui:     -apple-system, "Segoe UI", system-ui, sans-serif;
@@ -45,6 +46,7 @@
   --size-short:  #39c5cf;
   --size-medium: #a48bf0;
   --size-long:   #e07fc4;
+  --badge-text:  #0d1117;
   color-scheme: dark;
 }
 
@@ -577,6 +579,189 @@ body {
 .theme-toggle:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+/* ──────────────────────────────────────────
+   Hand typing guide
+────────────────────────────────────────── */
+.hand-guide {
+  margin-top: 1.25rem;
+  padding: 1rem 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: border-color 0.15s, opacity 0.15s;
+}
+
+.hand-guide-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.hand-guide-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.guide-tag {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.guide-key-display {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  padding: 0.15rem 0.55rem;
+  border-radius: 6px;
+  min-width: 1.8rem;
+  text-align: center;
+  display: inline-block;
+}
+
+.guide-finger-desc {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.hand-guide-layout {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.hand-guide-layout select {
+  padding: 0.25rem 0.5rem;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.hand-guide-layout select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.hand-svg-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.25rem 0 0;
+}
+
+.hand-svg {
+  width: 100%;
+  max-width: 520px;
+  height: auto;
+  display: block;
+}
+
+/* Hand SVG outlines */
+.hand-palm {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hand-label {
+  fill: var(--muted);
+  opacity: 0.5;
+  font-size: 11px;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.finger-outline {
+  fill: var(--bg);
+  stroke: var(--border);
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke 0.12s ease, fill 0.12s ease, stroke-width 0.12s ease;
+}
+
+.home-dot {
+  fill: var(--muted);
+  opacity: 0.35;
+}
+
+/* Finger hints and badges */
+.finger-badge {
+  opacity: 0;
+  transition: opacity 0.12s ease;
+  pointer-events: none;
+}
+
+.badge-bg {
+  fill: var(--accent);
+  stroke: var(--bg);
+  stroke-width: 1.5;
+}
+
+.badge-text {
+  fill: var(--badge-text);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* Active finger highlights */
+.finger-group.active .finger-outline {
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  fill: rgba(59, 130, 212, 0.16);
+}
+
+:root[data-theme="dark"] .finger-group.active .finger-outline {
+  fill: rgba(88, 166, 255, 0.18);
+}
+
+.finger-group.active .finger-badge {
+  opacity: 1;
+}
+
+/* Active modifier (Shift / AltGr) highlights */
+.finger-group.active-modifier .finger-outline {
+  stroke: var(--corrected);
+  stroke-width: 2.2;
+  fill: rgba(210, 153, 34, 0.16);
+}
+
+:root[data-theme="dark"] .finger-group.active-modifier .finger-outline {
+  fill: rgba(210, 153, 34, 0.2);
+}
+
+.finger-group.active-modifier .badge-bg {
+  fill: var(--corrected);
+}
+
+.finger-group.active-modifier .finger-badge {
+  opacity: 1;
 }
 
 /* ──────────────────────────────────────────

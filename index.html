@@ -102,6 +102,118 @@
     </div>
     <p id="practice-hint" class="hint">Click the text area to focus, then start typing. Backspace removes the last character.</p>
 
+    <!-- Hand typing guide (visible while text is not finished) -->
+    <div id="hand-guide" class="hand-guide">
+      <div class="hand-guide-header">
+        <div class="hand-guide-info">
+          <span class="guide-tag">Next key</span>
+          <span id="guide-key-display" class="guide-key-display">—</span>
+          <span id="guide-finger-desc" class="guide-finger-desc"></span>
+        </div>
+        <div class="hand-guide-layout">
+          <label for="keyboard-layout-select">Layout:</label>
+          <select id="keyboard-layout-select" class="layout-select" aria-label="Keyboard layout"></select>
+        </div>
+      </div>
+      <div class="hand-svg-container">
+        <svg id="hand-svg" viewBox="0 0 600 215" class="hand-svg" aria-label="Finger placement guide" role="img">
+          <!-- Left Hand -->
+          <g class="hand left-hand">
+            <path class="hand-palm" d="M 60 200 C 52 170, 44 145, 42 128 L 74 114 L 105 106 L 138 106 L 170 122 C 176 138, 180 148, 182 155 C 178 175, 170 190, 160 200 Z" />
+            <text class="hand-label" x="110" y="175" text-anchor="middle">Left Hand</text>
+            <!-- Left Pinky (lp) -->
+            <g class="finger-group" id="finger-lp" data-finger="lp">
+              <path class="finger-outline" d="M 42 128 C 43 100, 45 70, 47 52 C 48 40, 66 40, 67 52 C 69 70, 71 95, 74 114 Z" />
+              <g class="finger-badge" transform="translate(57, 48)">
+                <rect class="badge-bg" x="-14" y="-11" width="28" height="22" rx="11" />
+                <text class="badge-text" x="0" y="1" text-anchor="middle" dominant-baseline="central"></text>
+              </g>
+            </g>
+            <!-- Left Ring (lr) -->
+            <g class="finger-group" id="finger-lr" data-finger="lr">
+              <path class="finger-outline" d="M 74 114 C 75 85, 76 50, 78 34 C 79 22, 97 22, 98 34 C 100 50, 102 85, 105 106 Z" />
+              <g class="finger-badge" transform="translate(88, 30)">
+                <rect class="badge-bg" x="-14" y="-11" width="28" height="22" rx="11" />
+                <text class="badge-text" x="0" y="1" text-anchor="middle" dominant-baseline="central"></text>
+              </g>
+            </g>
+            <!-- Left Middle (lm) -->
+            <g class="finger-group" id="finger-lm" data-finger="lm">
+              <path class="finger-outline" d="M 105 106 C 106 75, 108 38, 110 22 C 111 10, 131 10, 132 22 C 134 38, 136 75, 138 106 Z" />
+              <g class="finger-badge" transform="translate(121, 18)">
+                <rect class="badge-bg" x="-14" y="-11" width="28" height="22" rx="11" />
+                <text class="badge-text" x="0" y="1" text-anchor="middle" dominant-baseline="central"></text>
+              </g>
+            </g>
+            <!-- Left Index (li) -->
+            <g class="finger-group" id="finger-li" data-finger="li">
+              <path class="finger-outline" d="M 138 106 C 140 82, 142 50, 144 34 C 145 22, 163 22, 164 34 C 166 50, 168 85, 170 122 Z" />
+              <circle class="home-dot" cx="154" cy="72" r="2.5" />
+              <g class="finger-badge" transform="translate(154, 30)">
+                <rect class="badge-bg" x="-14" y="-11" width="28" height="22" rx="11" />
+                <text class="badge-text" x="0" y="1" text-anchor="middle" dominant-baseline="central"></text>
+              </g>
+            </g>
+            <!-- Left Thumb (lt) -->
+            <g class="finger-group" id="finger-lt" data-finger="lt">
+              <path class="finger-outline" d="M 170 122 C 182 114, 198 106, 210 102 C 218 97, 228 108, 222 118 C 212 130, 196 142, 182 155 Z" />
+              <g class="finger-badge" transform="translate(212, 110)">
+                <rect class="badge-bg" x="-14" y="-11" width="28" height="22" rx="11" />
+                <text class="badge-text" x="0" y="1" text-anchor="middle" dominant-baseline="central"></text>
+              </g>
+            </g>
+          </g>
+
+          <!-- Right Hand -->
+          <g class="hand right-hand">
+            <path class="hand-palm" d="M 440 200 C 430 190, 422 175, 418 155 C 420 148, 424 138, 430 122 L 462 106 L 495 106 L 526 114 L 558 128 C 556 145, 548 170, 540 200 Z" />
+            <text class="hand-label" x="490" y="175" text-anchor="middle">Right Hand</text>
+            <!-- Right Thumb (rt) -->
+            <g class="finger-group" id="finger-rt" data-finger="rt">
+              <path class="finger-outline" d="M 418 155 C 404 142, 388 130, 378 118 C 372 108, 382 97, 390 102 C 402 106, 418 114, 430 122 Z" />
+              <g class="finger-badge" transform="translate(388, 110)">
+                <rect class="badge-bg" x="-14" y="-11" width="28" height="22" rx="11" />
+                <text class="badge-text" x="0" y="1" text-anchor="middle" dominant-baseline="central"></text>
+              </g>
+            </g>
+            <!-- Right Index (ri) -->
+            <g class="finger-group" id="finger-ri" data-finger="ri">
+              <path class="finger-outline" d="M 430 122 C 432 85, 434 50, 436 34 C 437 22, 455 22, 456 34 C 458 50, 460 82, 462 106 Z" />
+              <circle class="home-dot" cx="446" cy="72" r="2.5" />
+              <g class="finger-badge" transform="translate(446, 30)">
+                <rect class="badge-bg" x="-14" y="-11" width="28" height="22" rx="11" />
+                <text class="badge-text" x="0" y="1" text-anchor="middle" dominant-baseline="central"></text>
+              </g>
+            </g>
+            <!-- Right Middle (rm) -->
+            <g class="finger-group" id="finger-rm" data-finger="rm">
+              <path class="finger-outline" d="M 462 106 C 464 75, 466 38, 468 22 C 469 10, 489 10, 490 22 C 492 38, 494 75, 495 106 Z" />
+              <g class="finger-badge" transform="translate(479, 18)">
+                <rect class="badge-bg" x="-14" y="-11" width="28" height="22" rx="11" />
+                <text class="badge-text" x="0" y="1" text-anchor="middle" dominant-baseline="central"></text>
+              </g>
+            </g>
+            <!-- Right Ring (rr) -->
+            <g class="finger-group" id="finger-rr" data-finger="rr">
+              <path class="finger-outline" d="M 495 106 C 498 85, 500 50, 502 34 C 503 22, 521 22, 522 34 C 524 50, 525 85, 526 114 Z" />
+              <g class="finger-badge" transform="translate(512, 30)">
+                <rect class="badge-bg" x="-14" y="-11" width="28" height="22" rx="11" />
+                <text class="badge-text" x="0" y="1" text-anchor="middle" dominant-baseline="central"></text>
+              </g>
+            </g>
+            <!-- Right Pinky (rp) -->
+            <g class="finger-group" id="finger-rp" data-finger="rp">
+              <path class="finger-outline" d="M 526 114 C 529 95, 531 70, 533 52 C 534 40, 552 40, 553 52 C 555 70, 557 100, 558 128 Z" />
+              <g class="finger-badge" transform="translate(543, 48)">
+                <rect class="badge-bg" x="-14" y="-11" width="28" height="22" rx="11" />
+                <text class="badge-text" x="0" y="1" text-anchor="middle" dominant-baseline="central"></text>
+              </g>
+            </g>
+          </g>
+        </svg>
+      </div>
+    </div>
+
     <!-- Results appear here when the text is finished -->
     <div id="results-panel" class="results-panel hidden">
       <h2>Results</h2>
@@ -116,6 +228,7 @@
 
   <script src="texts.js"></script>
   <script src="words.js"></script>
+  <script src="layouts.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
