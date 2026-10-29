@@ -388,22 +388,24 @@ function renderTextList() {
   }
   textListEmpty.classList.toggle('hidden', visible.length > 0);
 
-  const categories = [];
-  visible.forEach(function (t) {
-    if (categories.indexOf(t.category) === -1) categories.push(t.category);
-  });
+  visible
+    .sort(function (a, b) { return levels.indexOf(a.difficulty) - levels.indexOf(b.difficulty); })
+    .forEach(renderTextCard);
+}
 
-  categories.forEach(function (category) {
-    const heading = document.createElement('li');
-    heading.className = 'text-group-title';
-    heading.textContent = category;
-    textList.appendChild(heading);
+/** Inline SVG icons (24x24, stroke-based) shown in the top-right corner of each card, keyed by text category. */
+const CATEGORY_ICONS = {
+  Drills: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+  Prose:  '<line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="10" x2="20" y2="10"/><line x1="4" y1="14" x2="20" y2="14"/><line x1="4" y1="18" x2="13" y2="18"/>',
+  Code:   '<polyline points="8 6 2 12 8 18"/><polyline points="16 6 22 12 16 18"/>',
+};
 
-    visible
-      .filter(function (t) { return t.category === category; })
-      .sort(function (a, b) { return levels.indexOf(a.difficulty) - levels.indexOf(b.difficulty); })
-      .forEach(renderTextCard);
-  });
+/** Build the category icon markup for a card. @param {string} category */
+function categoryIcon(category) {
+  const shapes = CATEGORY_ICONS[category] || '<circle cx="12" cy="12" r="9"/>';
+  return '<svg class="category-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+    'stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="' + escHtml(category) + '">' +
+    '<title>' + escHtml(category) + '</title>' + shapes + '</svg>';
 }
 
 // Filters are mirrored in the URL query string: ?category=Code&charset=Spanish&difficulty=Hard&size=long
@@ -645,6 +647,7 @@ function renderTextCard(entry) {
   const sizeLabel = size.charAt(0).toUpperCase() + size.slice(1);
 
   btn.innerHTML =
+    categoryIcon(entry.category) +
     '<span class="text-card-title">' + escHtml(entry.title) +
       ' <span class="badge badge-' + escHtml(entry.difficulty.toLowerCase()) + '">' + escHtml(entry.difficulty) + '</span>' +
       ' <span class="badge badge-charset">' + escHtml(charsetOf(entry)) + '</span>' +
