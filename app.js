@@ -99,6 +99,18 @@ function saveStats(stats) {
 }
 
 function addToBucket(b, m) {
+  const improved = {
+    wpm: false,
+    accuracy: false,
+    time: false,
+  };
+
+  if (b.runs > 0) {
+    if (m.netWpm > b.bestWpm) improved.wpm = true;
+    if (m.accuracy > b.bestAccuracy) improved.accuracy = true;
+    if (b.bestTime && m.accuracy >= b.bestAccuracy && m.elapsed < b.bestTime) improved.time = true;
+  }
+
   b.runs++;
   b.bestWpm = Math.max(b.bestWpm, m.netWpm);
   b.totalWpm += m.netWpm;
@@ -108,6 +120,8 @@ function addToBucket(b, m) {
     b.bestAccuracy = m.accuracy;
   }
   b.totalAccuracy += m.accuracy;
+
+  return improved;
 }
 
 /**
@@ -138,19 +152,28 @@ function pushCharHistory(charHistory, practicedText, sessionMisses) {
   });
 }
 
-/** Add a finished session to the global stats, and to the per-text stats unless the text is random. */
+/** Add a finished session to the global stats, and to the per-text stats unless the text is random.
+ * Returns { stats, records: { wpm: boolean, accuracy: boolean, time: boolean } }
+ */
 function recordRun(entry, metrics) {
   const stats = loadStats();
-  addToBucket(stats.global, metrics);
+  const globalImproved = addToBucket(stats.global, metrics);
   // Update the sliding char history on the global bucket
   if (!stats.global.charHistory) stats.global.charHistory = {};
   pushCharHistory(stats.global.charHistory, metrics.practicedText, metrics.missedChars);
+
+  let textImproved = { wpm: false, accuracy: false, time: false };
   if (!entry.random) {
     if (!stats.texts[entry.id]) stats.texts[entry.id] = newBucket();
-    addToBucket(stats.texts[entry.id], metrics);
+    textImproved = addToBucket(stats.texts[entry.id], metrics);
   }
   saveStats(stats);
-  return stats;
+
+  const records = entry.random
+    ? { wpm: globalImproved.wpm, accuracy: false, time: false }
+    : textImproved;
+
+  return { stats: stats, records: records };
 }
 
 /** Average of a bucket total, rounded; 0 when there are no runs. */
@@ -963,14 +986,17 @@ typingInput.addEventListener('compositionend', flushTypingInput);
  *            elapsed: number, errors: number, corrected: number }} metrics
  */
 function showResults(metrics) {
-  resultsStats.innerHTML = buildStatCard('Net WPM',          metrics.netWpm,        'Words per minute after subtracting uncorrected errors. The standard measure of typing speed.')
+  const result = recordRun(state.currentText, metrics);
+  const records = result.records;
+
+  resultsStats.innerHTML = buildStatCard('Net WPM',          metrics.netWpm,        'Words per minute after subtracting uncorrected errors. The standard measure of typing speed.', records.wpm)
     + buildStatCard('Raw WPM',         metrics.rawWpm,       'Total keystrokes per minute with no error penalty. Shows your raw speed before accounting for mistakes.')
-    + buildStatCard('Accuracy',        metrics.accuracy + '%', 'Percentage of characters typed correctly on the first attempt.')
-    + buildStatCard('Time',            formatTime(metrics.elapsed), 'Total time from your first keystroke to the last character.')
+    + buildStatCard('Accuracy',        metrics.accuracy + '%', 'Percentage of characters typed correctly on the first attempt.', records.accuracy)
+    + buildStatCard('Time',            formatTime(metrics.elapsed), 'Total time from your first keystroke to the last character.', records.time)
     + buildStatCard('Errors',          metrics.errors,       'Number of characters typed incorrectly (each wrong keystroke counts, even if later corrected).')
     + buildStatCard('Corrected errors', metrics.corrected,   'Errors you went back and fixed with Backspace before finishing.');
 
-  renderHistory(recordRun(state.currentText, metrics), state.currentText);
+  renderHistory(result.stats, state.currentText);
 
   resultsPanel.classList.remove('hidden');
   practiceHint.classList.add('hidden');
@@ -982,10 +1008,14 @@ function showResults(metrics) {
  * Build the HTML for a single result stat card.
  * @param {string} label
  * @param {string | number} value
+ * @param {string} [tooltip]
+ * @param {boolean} [isRecord]
  * @returns {string}
  */
-function buildStatCard(label, value, tooltip) {
-  return '<div class="results-stat-card"' + (tooltip ? ' data-tooltip="' + escHtml(tooltip) + '"' : '') + '>' +
+function buildStatCard(label, value, tooltip, isRecord) {
+  return '<div class="results-stat-card' + (isRecord ? ' is-record' : '') + '"' +
+           (tooltip ? ' data-tooltip="' + escHtml(tooltip) + '"' : '') + '>' +
+           (isRecord ? '<span class="stat-badge" title="New record!"><img src="assets/ribbon.svg" alt="New record" /></span>' : '') +
            '<dt>' + escHtml(label) + '</dt>' +
            '<dd>' + escHtml(String(value)) + '</dd>' +
          '</div>';

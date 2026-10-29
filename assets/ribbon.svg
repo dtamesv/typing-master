@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="36" height="36" fill="none">
+  <defs>
+    <linearGradient id="gold-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FDE047" />
+      <stop offset="50%" stop-color="#EAB308" />
+      <stop offset="100%" stop-color="#CA8A04" />
+    </linearGradient>
+    <linearGradient id="ribbon-l" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#CA8A04" />
+      <stop offset="100%" stop-color="#A16207" />
+    </linearGradient>
+    <linearGradient id="ribbon-r" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EAB308" />
+      <stop offset="100%" stop-color="#CA8A04" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1" flood-opacity="0.25" />
+    </filter>
+  </defs>
+
+  <g filter="url(#shadow)">
+    <!-- Left ribbon tail -->
+    <path d="M12 18 L7 33 L13 29.5 L17 33 L15.5 19 Z" fill="url(#ribbon-l)" stroke="#854D0E" stroke-width="0.5" stroke-linejoin="round" />
+    
+    <!-- Right ribbon tail -->
+    <path d="M24 18 L20.5 33 L24.5 29.5 L30.5 33 L25.5 19 Z" fill="url(#ribbon-r)" stroke="#854D0E" stroke-width="0.5" stroke-linejoin="round" />
+
+    <!-- Rosette outer ring -->
+    <circle cx="18" cy="14" r="11" fill="url(#gold-grad)" stroke="#A16207" stroke-width="0.75" />
+    
+    <!-- Rosette inner border -->
+    <circle cx="18" cy="14" r="8.5" fill="none" stroke="#FEF08A" stroke-width="0.75" stroke-dasharray="1.5 1" />
+    
+    <!-- Rosette center core -->
+    <circle cx="18" cy="14" r="7" fill="#CA8A04" />
+    <circle cx="18" cy="14" r="6.2" fill="url(#gold-grad)" />
+
+    <!-- Star symbol -->
+    <polygon points="18,9.2 19.5,12.5 23,12.8 20.3,15.1 21.1,18.5 18,16.7 14.9,18.5 15.7,15.1 13,12.8 16.5,12.5" fill="#FFFFFF" />
+  </g>
+</svg>

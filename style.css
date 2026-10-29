@@ -527,6 +527,28 @@ body {
   position: relative;
 }
 
+.results-stat-card.is-record {
+  border-color: #eab308;
+}
+
+.results-stat-card .stat-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.results-stat-card .stat-badge img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
 .results-stat-card[data-tooltip]:hover::after {
   content: attr(data-tooltip);
   position: absolute;
