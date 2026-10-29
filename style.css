@@ -324,6 +324,63 @@ body {
   box-shadow: 0 0 0 3px rgba(59, 130, 212, 0.15);
 }
 
+/* Restart icon in the top-right corner of the text box (shown only while typing is in progress) */
+.btn-restart {
+  position: absolute;
+  top: 0.1rem;
+  right: 0.1rem;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.3rem;
+  height: 1.3rem;
+  padding: 0;
+  background: transparent;
+  color: var(--muted);
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.btn-restart svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.btn-restart:hover,
+.btn-restart:focus-visible {
+  color: var(--accent);
+  background: var(--bg);
+  outline: none;
+}
+
+.btn-restart::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 0.25rem);
+  right: 0;
+  padding: 0.2rem 0.5rem;
+  background: var(--text);
+  color: var(--bg);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.12s;
+}
+
+.btn-restart:hover::after,
+.btn-restart:focus-visible::after {
+  opacity: 1;
+  visibility: visible;
+}
+
 /* Invisible input that receives keystrokes (needed for dead keys such as ^ and IME input) */
 .typing-input {
   position: absolute;

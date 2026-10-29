@@ -49,6 +49,7 @@ const charDisplay      = document.getElementById('char-display');
 
 const btnBackPractice  = document.getElementById('btn-back-practice');
 const btnRetry         = document.getElementById('btn-retry');
+const btnRestart       = document.getElementById('btn-restart');
 const btnBackResults   = document.getElementById('btn-back-results');
 const resultsStats     = document.getElementById('results-stats');
 const resultsHistory   = document.getElementById('results-history');
@@ -683,6 +684,7 @@ function startPractice(entry, fromUrl) {
   state.missedChars         = {};
   state.startTime           = null;
   state.finished            = false;
+  btnRestart.classList.add('hidden');
 
   practiceTitle.textContent    = entry.title;
   practiceProgress.textContent = '0 / ' + entry.text.length;
@@ -736,6 +738,7 @@ function renderCharSpans(text) {
 /** Start the elapsed-time ticker (called on first keystroke). */
 function startTimer() {
   state.startTime = Date.now();
+  btnRestart.classList.remove('hidden');
   state.timerId = setInterval(function () {
     practiceTimer.textContent = formatTime(Date.now() - state.startTime);
   }, 250);
@@ -923,6 +926,7 @@ function calcAccuracy(firstAttemptCorrect, totalChars) {
 function finishPractice() {
   stopTimer();
   state.finished = true;
+  btnRestart.classList.add('hidden');
   handGuide.classList.add('hidden');
   clearHandGuideHighlights();
 
@@ -1064,6 +1068,12 @@ btnBackPractice.addEventListener('click', abandonPractice);
 btnRetry.addEventListener('click', function () {
   if (state.currentText) {
     startPractice(state.currentText);
+  }
+});
+
+btnRestart.addEventListener('click', function () {
+  if (state.currentText) {
+    startPractice(state.currentText, true); // same text, URL already points to it
   }
 });
 
