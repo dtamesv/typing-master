@@ -400,9 +400,10 @@ const CATEGORY_ICONS = {
 /** Build the category icon markup for a card. @param {string} category */
 function categoryIcon(category) {
   const shapes = CATEGORY_ICONS[category] || '<circle cx="12" cy="12" r="9"/>';
-  return '<svg class="category-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+  return '<span class="category-icon" data-tooltip="' + escHtml(category) + '">' +
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
     'stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="' + escHtml(category) + '">' +
-    '<title>' + escHtml(category) + '</title>' + shapes + '</svg>';
+    shapes + '</svg></span>';
 }
 
 // Filters are mirrored in the URL query string: ?category=Code&charset=Spanish&difficulty=Hard&size=long&top=10&sort=most-tried
