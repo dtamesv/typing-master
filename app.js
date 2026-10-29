@@ -100,16 +100,10 @@ function saveStats(stats) {
 
 function addToBucket(b, m) {
   const improved = {
-    wpm: false,
-    accuracy: false,
-    time: false,
+    wpm: b.runs === 0 || m.netWpm > b.bestWpm,
+    accuracy: b.runs === 0 || m.accuracy > b.bestAccuracy,
+    time: b.runs === 0 || b.bestTime && m.accuracy >= b.bestAccuracy && m.elapsed < b.bestTime,
   };
-
-  if (b.runs > 0) {
-    if (m.netWpm > b.bestWpm) improved.wpm = true;
-    if (m.accuracy > b.bestAccuracy) improved.accuracy = true;
-    if (b.bestTime && m.accuracy >= b.bestAccuracy && m.elapsed < b.bestTime) improved.time = true;
-  }
 
   b.runs++;
   b.bestWpm = Math.max(b.bestWpm, m.netWpm);
