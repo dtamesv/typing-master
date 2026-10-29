@@ -315,7 +315,8 @@ const filterCharset    = document.getElementById('filter-charset');
 const filterDifficulty = document.getElementById('filter-difficulty');
 const filterSize       = document.getElementById('filter-size');
 const filterTried      = document.getElementById('filter-tried');
-const filterSuccess    = document.getElementById('filter-success');
+const filterTop        = document.getElementById('filter-top');
+const sortBy           = document.getElementById('sort-by');
 const textListEmpty    = document.getElementById('text-list-empty');
 
 /** @param {number} length @returns {'short' | 'medium' | 'long'} */
@@ -358,39 +359,35 @@ function renderTextList() {
   const savedTexts = loadStats().texts;
   const runsOf = function (t) { return (savedTexts[t.id] && savedTexts[t.id].runs) || 0; };
   const accuracyOf = function (t) { return (savedTexts[t.id] && savedTexts[t.id].runs) ? bucketAvg(savedTexts[t.id], 'totalAccuracy') : 0; };
-  const topTried = filterTried.value === 'least' || filterTried.value === 'most';
-  const topSuccess = filterSuccess.value === 'least' || filterSuccess.value === 'most';
-  let visible = TEXTS.filter(function (t) {
+  const visible = TEXTS.filter(function (t) {
     return (!filterCategory.value || t.category === filterCategory.value)
       && (!filterCharset.value || charsetOf(t) === filterCharset.value)
       && (!filterDifficulty.value || t.difficulty === filterDifficulty.value)
       && (!filterSize.value || sizeOf(t.text.length) === filterSize.value)
-      && (!filterTried.value || topTried || (filterTried.value === 'yes') === (runsOf(t) > 0));
+      && (!filterTried.value || (filterTried.value === 'yes') === (runsOf(t) > 0));
   });
-  if (topTried) {
-    // Rank the texts matching the other filters by number of runs and keep the first 10.
-    const sign = filterTried.value === 'least' ? 1 : -1;
-    visible = visible
-      .filter(function (t) { return sign === 1 || runsOf(t) > 0; })
-      .sort(function (a, b) { return sign * (runsOf(a) - runsOf(b)); })
-      .slice(0, 10);
-  }
-  if (topSuccess) {
-    // Rank the texts matching the other filters by accuracy (only tried texts) and keep the first 10.
-    const sign = filterSuccess.value === 'least' ? 1 : -1;
-    visible = visible
-      .filter(function (t) { return runsOf(t) > 0; })
-      .sort(function (a, b) {
-        const diff = accuracyOf(a) - accuracyOf(b);
-        return diff !== 0 ? sign * diff : (runsOf(b) - runsOf(a));
-      })
-      .slice(0, 10);
-  }
-  textListEmpty.classList.toggle('hidden', visible.length > 0);
 
-  visible
-    .sort(function (a, b) { return levels.indexOf(a.difficulty) - levels.indexOf(b.difficulty); })
-    .forEach(renderTextCard);
+  const byDifficulty = function (a, b) { return levels.indexOf(a.difficulty) - levels.indexOf(b.difficulty); };
+  // Untried texts have no accuracy: they always go after the tried ones when sorting by success.
+  const bySuccess = function (sign) {
+    return function (a, b) {
+      if (!runsOf(a) || !runsOf(b)) return (runsOf(b) > 0) - (runsOf(a) > 0);
+      const diff = accuracyOf(a) - accuracyOf(b);
+      return diff !== 0 ? sign * diff : (runsOf(b) - runsOf(a));
+    };
+  };
+  const comparators = {
+    '':              byDifficulty,
+    'most-tried':    function (a, b) { return runsOf(b) - runsOf(a); },
+    'least-tried':   function (a, b) { return runsOf(a) - runsOf(b); },
+    'most-success':  bySuccess(-1),
+    'least-success': bySuccess(1),
+  };
+  visible.sort(comparators[sortBy.value] || byDifficulty);
+
+  const shown = filterTop.value ? visible.slice(0, Number(filterTop.value)) : visible;
+  textListEmpty.classList.toggle('hidden', shown.length > 0);
+  shown.forEach(renderTextCard);
 }
 
 /** Inline SVG icons (24x24, stroke-based) shown in the top-right corner of each card, keyed by text category. */
@@ -408,14 +405,15 @@ function categoryIcon(category) {
     '<title>' + escHtml(category) + '</title>' + shapes + '</svg>';
 }
 
-// Filters are mirrored in the URL query string: ?category=Code&charset=Spanish&difficulty=Hard&size=long
+// Filters are mirrored in the URL query string: ?category=Code&charset=Spanish&difficulty=Hard&size=long&top=10&sort=most-tried
 const FILTER_PARAMS = [
   ['category',   filterCategory],
   ['charset',    filterCharset],
   ['difficulty', filterDifficulty],
   ['size',       filterSize],
   ['tried',      filterTried],
-  ['success',    filterSuccess],
+  ['top',        filterTop],
+  ['sort',       sortBy],
 ];
 
 /** Select the filter values given in the URL; unknown values are ignored. */
