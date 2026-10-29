@@ -76,7 +76,8 @@ updateThemeToggleLabel();
 
 // ── Saved stats (localStorage) ───────────────────────────────
 // Shape: { global: Bucket, texts: { [textId]: Bucket } }
-// Bucket: { runs, bestWpm, totalWpm, bestAccuracy, totalAccuracy, totalTime }
+// Bucket: { runs, bestWpm, totalWpm, bestAccuracy, totalAccuracy, accuracyHistory, totalTime }
+// accuracyHistory: sliding window (max CHAR_HISTORY_SESSIONS) for recency-weighted avg accuracy.
 // Only completed sessions are recorded.
 
 const STATS_KEY = 'typingStats';
@@ -84,7 +85,7 @@ const STATS_KEY = 'typingStats';
 const CHAR_HISTORY_SESSIONS = 20;
 
 function newBucket() {
-  return { runs: 0, bestWpm: 0, totalWpm: 0, bestAccuracy: 0, totalAccuracy: 0, bestTime: 0 };
+  return { runs: 0, bestWpm: 0, totalWpm: 0, bestAccuracy: 0, totalAccuracy: 0, accuracyHistory: [], bestTime: 0 };
 }
 
 function loadStats() {
@@ -113,6 +114,19 @@ function addToBucket(b, m) {
   // The best time is only updated by a run that matches or beats the bucket's best accuracy.
   b.bestTime = m.accuracy > b.bestAccuracy ? m.elapsed : Math.min(b.bestTime, m.elapsed);
   b.totalAccuracy += m.accuracy;
+  // Sliding window for recency-weighted average accuracy (same collapse strategy as charHistory).
+  if (!b.accuracyHistory) b.accuracyHistory = [];
+  // On first migration: seed the window with the old plain average so the displayed value
+  // doesn't jump. b.runs has already been incremented, so prior runs = b.runs - 1.
+  if (b.accuracyHistory.length === 0 && b.runs > 1) {
+    const oldAvg = Math.round((b.totalAccuracy - m.accuracy) / (b.runs - 1));
+    b.accuracyHistory.push(oldAvg);
+  }
+  b.accuracyHistory.push(m.accuracy);
+  if (b.accuracyHistory.length > CHAR_HISTORY_SESSIONS) {
+    const condensed = (b.accuracyHistory[0] + b.accuracyHistory[1]) / 2;
+    b.accuracyHistory.splice(0, 2, condensed);
+  }
 
   return improved;
 }
@@ -175,6 +189,19 @@ function bucketAvg(b, field) {
 }
 
 /**
+ * Recency-weighted average accuracy for a bucket.
+ * Uses the sliding accuracyHistory window when available (new data), otherwise
+ * falls back to the plain totalAccuracy mean for buckets saved before this feature.
+ */
+function bucketAvgAccuracy(b) {
+  if (b.accuracyHistory && b.accuracyHistory.length) {
+    const sum = b.accuracyHistory.reduce(function (s, v) { return s + v; }, 0);
+    return Math.round(sum / b.accuracyHistory.length);
+  }
+  return bucketAvg(b, 'totalAccuracy');
+}
+
+/**
  * Derive a flat { ch: avgMisses } map from the sliding char history, for use by the generators.
  * @param {Object.<string, number[]>} charHistory
  * @returns {Object.<string, number>}
@@ -196,7 +223,7 @@ function statsRow(label, b, perText, tooltip) {
     '<td>' + b.bestWpm + '</td>' +
     '<td>' + bucketAvg(b, 'totalWpm') + '</td>' +
     '<td>' + (perText ? b.bestAccuracy + '%' : '-') + '</td>' +
-    '<td>' + bucketAvg(b, 'totalAccuracy') + '%</td>' +
+    '<td>' + bucketAvgAccuracy(b) + '%</td>' +
     '<td>' + (perText ? (b.bestTime ? formatTime(b.bestTime) : '-') : '-') + '</td></tr>';
 }
 
@@ -210,7 +237,7 @@ function renderHistory(stats, entry) {
       '<th data-tooltip="Highest Net WPM achieved in a single run.">Best WPM</th>' +
       '<th data-tooltip="Average Net WPM across all completed runs.">Avg WPM</th>' +
       '<th data-tooltip="Highest accuracy achieved in a single run.">Best acc.</th>' +
-      '<th data-tooltip="Average accuracy across all completed runs.">Avg acc.</th>' +
+      '<th data-tooltip="Recency-weighted average accuracy (recent runs count more).">Avg acc.</th>' +
       '<th data-tooltip="Fastest completion time recorded for this text with the highest accuray.">Best time</th>' +
     '</tr></thead><tbody>' +
       (entry.random ? '' : statsRow('This text', stats.texts[entry.id] || newBucket(), true, 'Statistics for the current text snippet.')) +
@@ -224,7 +251,7 @@ function renderGlobalSummary() {
   globalStats.classList.toggle('hidden', g.runs === 0);
   globalStats.textContent = 'All texts: ' + g.runs + (g.runs === 1 ? ' run' : ' runs') +
     ' · best ' + g.bestWpm + ' WPM · avg ' + bucketAvg(g, 'totalWpm') + ' WPM · avg accuracy ' +
-    bucketAvg(g, 'totalAccuracy') + '%';
+    bucketAvgAccuracy(g) + '%';
 }
 
 // ── URL / history ────────────────────────────────────────────
@@ -357,7 +384,7 @@ function renderTextList() {
   const levels = ['Easy', 'Medium', 'Hard'];
   const savedTexts = loadStats().texts;
   const runsOf = function (t) { return (savedTexts[t.id] && savedTexts[t.id].runs) || 0; };
-  const accuracyOf = function (t) { return (savedTexts[t.id] && savedTexts[t.id].runs) ? bucketAvg(savedTexts[t.id], 'totalAccuracy') : 0; };
+  const accuracyOf = function (t) { return (savedTexts[t.id] && savedTexts[t.id].runs) ? bucketAvgAccuracy(savedTexts[t.id]) : 0; };
   const visible = TEXTS.filter(function (t) {
     return (!filterCategory.value || t.category === filterCategory.value)
       && (!filterCharset.value || charsetOf(t) === filterCharset.value)
@@ -636,7 +663,7 @@ function renderTextCard(entry) {
   const saved = loadStats().texts[entry.id];
   const cardStats = saved && saved.runs
     ? '<span class="text-card-stats">Best ' + saved.bestWpm + ' WPM · avg accuracy ' +
-        bucketAvg(saved, 'totalAccuracy') + '%' +
+        bucketAvgAccuracy(saved) + '%' +
         (saved.bestTime ? ' · ' + formatTime(saved.bestTime) : '') +
         ' · ' + saved.runs + (saved.runs === 1 ? ' run' : ' runs') + '</span>'
     : '';
