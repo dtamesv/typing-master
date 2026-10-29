@@ -315,6 +315,7 @@ const filterCharset    = document.getElementById('filter-charset');
 const filterDifficulty = document.getElementById('filter-difficulty');
 const filterSize       = document.getElementById('filter-size');
 const filterTried      = document.getElementById('filter-tried');
+const filterSuccess    = document.getElementById('filter-success');
 const textListEmpty    = document.getElementById('text-list-empty');
 
 /** @param {number} length @returns {'short' | 'medium' | 'long'} */
@@ -356,20 +357,33 @@ function renderTextList() {
   const levels = ['Easy', 'Medium', 'Hard'];
   const savedTexts = loadStats().texts;
   const runsOf = function (t) { return (savedTexts[t.id] && savedTexts[t.id].runs) || 0; };
-  const topN = filterTried.value === 'least' || filterTried.value === 'most';
+  const accuracyOf = function (t) { return (savedTexts[t.id] && savedTexts[t.id].runs) ? bucketAvg(savedTexts[t.id], 'totalAccuracy') : 0; };
+  const topTried = filterTried.value === 'least' || filterTried.value === 'most';
+  const topSuccess = filterSuccess.value === 'least' || filterSuccess.value === 'most';
   let visible = TEXTS.filter(function (t) {
     return (!filterCategory.value || t.category === filterCategory.value)
       && (!filterCharset.value || charsetOf(t) === filterCharset.value)
       && (!filterDifficulty.value || t.difficulty === filterDifficulty.value)
       && (!filterSize.value || sizeOf(t.text.length) === filterSize.value)
-      && (!filterTried.value || topN || (filterTried.value === 'yes') === (runsOf(t) > 0));
+      && (!filterTried.value || topTried || (filterTried.value === 'yes') === (runsOf(t) > 0));
   });
-  if (topN) {
+  if (topTried) {
     // Rank the texts matching the other filters by number of runs and keep the first 10.
     const sign = filterTried.value === 'least' ? 1 : -1;
     visible = visible
       .filter(function (t) { return sign === 1 || runsOf(t) > 0; })
       .sort(function (a, b) { return sign * (runsOf(a) - runsOf(b)); })
+      .slice(0, 10);
+  }
+  if (topSuccess) {
+    // Rank the texts matching the other filters by accuracy (only tried texts) and keep the first 10.
+    const sign = filterSuccess.value === 'least' ? 1 : -1;
+    visible = visible
+      .filter(function (t) { return runsOf(t) > 0; })
+      .sort(function (a, b) {
+        const diff = accuracyOf(a) - accuracyOf(b);
+        return diff !== 0 ? sign * diff : (runsOf(b) - runsOf(a));
+      })
       .slice(0, 10);
   }
   textListEmpty.classList.toggle('hidden', visible.length > 0);
@@ -399,6 +413,7 @@ const FILTER_PARAMS = [
   ['difficulty', filterDifficulty],
   ['size',       filterSize],
   ['tried',      filterTried],
+  ['success',    filterSuccess],
 ];
 
 /** Select the filter values given in the URL; unknown values are ignored. */
