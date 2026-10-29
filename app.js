@@ -102,17 +102,15 @@ function addToBucket(b, m) {
   const improved = {
     wpm: b.runs === 0 || m.netWpm > b.bestWpm,
     accuracy: b.runs === 0 || m.accuracy > b.bestAccuracy,
-    time: b.runs === 0 || b.bestTime && m.accuracy >= b.bestAccuracy && m.elapsed < b.bestTime,
+    time: b.runs === 0 ||  m.accuracy > b.bestAccuracy || ( m.accuracy === b.bestAccuracy && m.elapsed < b.bestTime ),
   };
 
   b.runs++;
   b.bestWpm = Math.max(b.bestWpm, m.netWpm);
   b.totalWpm += m.netWpm;
+  b.bestAccuracy = m.accuracy > b.bestAccuracy ? m.accuracy : b.bestAccuracy;
   // The best time is only updated by a run that matches or beats the bucket's best accuracy.
-  if (m.accuracy >= b.bestAccuracy) {
-    b.bestTime = !b.bestTime || m.accuracy > b.bestAccuracy ? m.elapsed : Math.min(b.bestTime, m.elapsed);
-    b.bestAccuracy = m.accuracy;
-  }
+  b.bestTime = m.accuracy > b.bestAccuracy ? m.elapsed : Math.min(b.bestTime, m.elapsed);
   b.totalAccuracy += m.accuracy;
 
   return improved;
