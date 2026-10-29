@@ -212,7 +212,7 @@ function renderHistory(stats, entry) {
       '<th data-tooltip="Average Net WPM across all completed runs.">Avg WPM</th>' +
       '<th data-tooltip="Highest accuracy achieved in a single run.">Best acc.</th>' +
       '<th data-tooltip="Average accuracy across all completed runs.">Avg acc.</th>' +
-      '<th data-tooltip="Fastest completion time recorded for this text.">Best time</th>' +
+      '<th data-tooltip="Fastest completion time recorded for this text with the highest accuray.">Best time</th>' +
     '</tr></thead><tbody>' +
       (entry.random ? '' : statsRow('This text', stats.texts[entry.id] || newBucket(), true, 'Statistics for the current text snippet.')) +
       statsRow('All texts', stats.global, false, 'Aggregate statistics across all practice sessions.') +
