@@ -1,7 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" shape-rendering="geometricPrecision">
-  <!-- Ribbon Tails -->
-  <path d="M8 13.5 L4.5 21.5 L8.5 19.5 L11.5 21.5 L10.5 14.5 Z" fill="#EAB308" />
-  <path d="M16 13.5 L19.5 21.5 L15.5 19.5 L12.5 21.5 L13.5 14.5 Z" fill="#EAB308" />
+  <!-- Single Ribbon Tail -->
+  <path d="M8.5,13.5 L6,23 L12,19.5 L18.5,23 L15.5,13.5 Z" fill="#EAB308" />
   <!-- Medal Circle -->
   <circle cx="12" cy="9" r="6.5" fill="#EAB308" />
   <!-- Star in Center -->
