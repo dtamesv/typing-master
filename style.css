@@ -424,7 +424,7 @@ body {
 
 .results-history {
   margin-top: 1.25rem;
-  overflow-x: auto;
+  overflow: visible;
 }
 
 .results-history h3 {
@@ -453,6 +453,43 @@ body {
 .stats-table thead th {
   color: var(--muted);
   font-weight: 600;
+}
+
+.stats-table th[data-tooltip] {
+  position: relative;
+  cursor: default;
+}
+
+.stats-table th[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--text);
+  color: var(--bg);
+  font-size: 0.78rem;
+  font-family: var(--font-ui);
+  font-weight: 400;
+  line-height: 1.4;
+  padding: 0.4rem 0.65rem;
+  border-radius: 6px;
+  width: 12rem;
+  white-space: normal;
+  text-align: center;
+  pointer-events: none;
+  z-index: 11;
+}
+
+.stats-table th:first-child[data-tooltip]:hover::after {
+  left: 0;
+  transform: none;
+}
+
+.stats-table th:last-child[data-tooltip]:hover::after {
+  left: auto;
+  right: 0;
+  transform: none;
 }
 
 .results-panel h2 {

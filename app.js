@@ -174,8 +174,8 @@ function charHistoryToWeights(charHistory) {
 }
 
 /** One table row for a stats bucket. Best accuracy and total time are only meaningful per text, so global rows skip them. */
-function statsRow(label, b, perText) {
-  return '<tr><th scope="row">' + escHtml(label) + '</th>' +
+function statsRow(label, b, perText, tooltip) {
+  return '<tr><th scope="row"' + (tooltip ? ' data-tooltip="' + escHtml(tooltip) + '"' : '') + '>' + escHtml(label) + '</th>' +
     '<td>' + b.runs + '</td>' +
     '<td>' + b.bestWpm + '</td>' +
     '<td>' + bucketAvg(b, 'totalWpm') + '</td>' +
@@ -189,11 +189,16 @@ function renderHistory(stats, entry) {
   resultsHistory.innerHTML =
     '<h3>History</h3>' +
     '<table class="stats-table"><thead><tr>' +
-      '<th></th><th>Runs</th><th>Best WPM</th><th>Avg WPM</th>' +
-      '<th>Best acc.</th><th>Avg acc.</th><th>Best time</th>' +
+      '<th></th>' +
+      '<th data-tooltip="Total number of completed practice runs.">Runs</th>' +
+      '<th data-tooltip="Highest Net WPM achieved in a single run.">Best WPM</th>' +
+      '<th data-tooltip="Average Net WPM across all completed runs.">Avg WPM</th>' +
+      '<th data-tooltip="Highest accuracy achieved in a single run.">Best acc.</th>' +
+      '<th data-tooltip="Average accuracy across all completed runs.">Avg acc.</th>' +
+      '<th data-tooltip="Fastest completion time recorded for this text.">Best time</th>' +
     '</tr></thead><tbody>' +
-      (entry.random ? '' : statsRow('This text', stats.texts[entry.id] || newBucket(), true)) +
-      statsRow('All texts', stats.global, false) +
+      (entry.random ? '' : statsRow('This text', stats.texts[entry.id] || newBucket(), true, 'Statistics for the current text snippet.')) +
+      statsRow('All texts', stats.global, false, 'Aggregate statistics across all practice sessions.') +
     '</tbody></table>';
 }
 
