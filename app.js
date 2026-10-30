@@ -216,19 +216,48 @@ function charHistoryToWeights(charHistory) {
   return weights;
 }
 
+/**
+ * Compute the recency-weighted average accuracy as it was *before* the most recent run was added.
+ * Returns null when there is no prior run to compare against.
+ */
+function prevAvgAccuracy(b) {
+  if (!b.accuracyHistory || b.accuracyHistory.length < 2) return null;
+  const prev = b.accuracyHistory.slice(0, -1);
+  const sum = prev.reduce(function (s, v) { return s + v; }, 0);
+  return Math.round(sum / prev.length);
+}
+
 /** One table row for a stats bucket. Best accuracy and total time are only meaningful per text, so global rows skip them. */
-function statsRow(label, b, perText, tooltip) {
+function statsRow(label, b, perText, tooltip, accuracyTrend) {
+  var avgAcc = bucketAvgAccuracy(b);
+  var trendHtml = '';
+  if (accuracyTrend === 'up') {
+    trendHtml = '<svg class="trend-arrow trend-up" viewBox="0 0 10 10" aria-label="improved" role="img"><polyline points="1,8 5,2 9,8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  } else if (accuracyTrend === 'down') {
+    trendHtml = '<svg class="trend-arrow trend-down" viewBox="0 0 10 10" aria-label="declined" role="img"><polyline points="1,2 5,8 9,2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
   return '<tr><th scope="row"' + (tooltip ? ' data-tooltip="' + escHtml(tooltip) + '"' : '') + '>' + escHtml(label) + '</th>' +
     '<td>' + b.runs + '</td>' +
     '<td>' + b.bestWpm + '</td>' +
     '<td>' + bucketAvg(b, 'totalWpm') + '</td>' +
     '<td>' + (perText ? b.bestAccuracy + '%' : '-') + '</td>' +
-    '<td>' + bucketAvgAccuracy(b) + '%</td>' +
+    '<td>' + avgAcc + '%' + trendHtml + '</td>' +
     '<td>' + (perText ? (b.bestTime ? formatTime(b.bestTime) : '-') : '-') + '</td></tr>';
+}
+
+/** Compute 'up', 'down', or null trend for a bucket's avg accuracy relative to the previous session. */
+function accuracyTrend(b) {
+  var prev = prevAvgAccuracy(b);
+  if (prev === null) return null;
+  var curr = bucketAvgAccuracy(b);
+  if (curr > prev) return 'up';
+  if (curr < prev) return 'down';
+  return null;
 }
 
 /** Table comparing this text's history with the global history (random texts only get the global row). */
 function renderHistory(stats, entry) {
+  var textBucket = stats.texts[entry.id] || newBucket();
   resultsHistory.innerHTML =
     '<h3>History</h3>' +
     '<table class="stats-table"><thead><tr>' +
@@ -240,8 +269,8 @@ function renderHistory(stats, entry) {
       '<th data-tooltip="Recency-weighted average accuracy (recent runs count more).">Avg acc.</th>' +
       '<th data-tooltip="Fastest completion time recorded for this text with the highest accuray.">Best time</th>' +
     '</tr></thead><tbody>' +
-      (entry.random ? '' : statsRow('This text', stats.texts[entry.id] || newBucket(), true, 'Statistics for the current text snippet.')) +
-      statsRow('All texts', stats.global, false, 'Aggregate statistics across all practice sessions.') +
+      (entry.random ? '' : statsRow('This text', textBucket, true, 'Statistics for the current text snippet.', accuracyTrend(textBucket))) +
+      statsRow('All texts', stats.global, false, 'Aggregate statistics across all practice sessions.', accuracyTrend(stats.global)) +
     '</tbody></table>';
 }
 

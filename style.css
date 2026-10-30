@@ -521,6 +521,23 @@ body {
   margin-bottom: 0.5rem;
 }
 
+.trend-arrow {
+  display: inline-block;
+  vertical-align: middle;
+  width: 0.75em;
+  height: 0.75em;
+  margin-left: 0.25em;
+  flex-shrink: 0;
+}
+
+.trend-up {
+  color: var(--correct);
+}
+
+.trend-down {
+  color: var(--wrong);
+}
+
 .stats-table {
   width: 100%;
   border-collapse: collapse;
